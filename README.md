@@ -153,18 +153,79 @@ $result = $program->unsafeRun();
 
 ### Client Support
 
-Make HTTP requests functionally:
+Http4p provides multiple ways to make HTTP requests, from explicit control to convenient helpers.
+
+#### Explicit Request (Full Control)
+
+Build requests explicitly for maximum control:
 
 ```php
-$client = HttpClient::create();
+use function Phunkie\Http4p\{HttpClient, Request};
+use function Phunkie\Http4p\Method\GET;
 
-$program = $client
-    ->get('https://api.example.com/users/1')
-    ->flatMap(fn($response) => 
-        io(fn() => json_decode($response->body))
-    );
+$client = HttpClient();
+$request = Request(method: GET, uri: 'http://api.example.com/users/1');
+
+$program = $client->run($request)
+    ->map(fn($response) => json_decode($response->body));
 
 $user = $program->unsafeRun();
+```
+
+#### Fluent Builder (Convenient)
+
+Use the fluent API for cleaner code:
+
+```php
+use function Phunkie\Http4p\HttpClient;
+
+// With base URI
+$client = HttpClient(baseUri: 'http://api.example.com');
+
+$program = $client
+    ->get('/users/1')
+    ->map(fn($response) => json_decode($response->body));
+
+$user = $program->unsafeRun();
+
+// Without base URI
+$client = HttpClient();
+
+$program = $client
+    ->get('http://api.example.com/users/1')
+    ->map(fn($response) => json_decode($response->body));
+```
+
+#### Quick Helpers (Simple Cases)
+
+For one-off requests, use the helper functions:
+
+```php
+use function Phunkie\Http4p\Client\{get, post, put, delete, patch};
+
+// GET request
+$user = get('http://api.example.com/users/1')
+    ->map(fn($response) => json_decode($response->body))
+    ->unsafeRun();
+
+// POST request
+$newUser = post('http://api.example.com/users', ['name' => 'John', 'email' => 'john@example.com'])
+    ->map(fn($response) => json_decode($response->body))
+    ->unsafeRun();
+
+// PUT request
+$updated = put('http://api.example.com/users/1', ['name' => 'John Doe'])
+    ->map(fn($response) => json_decode($response->body))
+    ->unsafeRun();
+
+// DELETE request
+$result = delete('http://api.example.com/users/1')
+    ->flatMap(fn($response) => 
+        $response->status === 204 
+            ? io(fn() => true) 
+            : io(fn() => false)
+    )
+    ->unsafeRun();
 ```
 
 ## API Reference
