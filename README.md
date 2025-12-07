@@ -36,11 +36,11 @@ use function Phunkie\Effect\Functions\io\io;
 // Define routes
 $routes = HttpRoutes(
     GET('/users/:id', fn(Request $req) =>
-        io(fn() => Ok()->json(['id' => $req->params['id']]))
+        io(fn() => Ok(['id' => $req->params['id']]))
     ),
     
     POST('/users', fn(Request $req) =>
-        io(fn() => Created()->json(['message' => 'User created']))
+        io(fn() => Created(['message' => 'User created']))
     )
 );
 
@@ -73,21 +73,22 @@ $routes = HttpRoutes(
 
 ### Response Helpers
 
-Use functional response constructors:
+Use functional response constructors (JSON is the default format):
 
 ```php
 use function Phunkie\Http4p\Response\{Ok, Created, Accepted, NoContent, BadRequest, NotFound, InternalServerError};
 
-// Success responses
-Ok()->json(['status' => 'success']);
-Created()->json(['id' => 123]);
-Accepted()->text('Processing');
+// Success responses - body is passed as argument
+Ok(['status' => 'success']);
+Created(['id' => 123, 'name' => 'New User']);
+Created($user);  // Pass objects directly
+Accepted('Processing');
 NoContent();
 
 // Error responses
-BadRequest()->json(['error' => 'Invalid input']);
-NotFound()->json(['error' => 'Resource not found']);
-InternalServerError()->text('Something went wrong');
+BadRequest(['error' => 'Invalid input']);
+NotFound(['error' => 'Resource not found']);
+InternalServerError('Something went wrong');
 ```
 
 ### Middleware Composition
@@ -122,12 +123,12 @@ Handle large responses efficiently:
 
 ```php
 use function Phunkie\Http4p\Response\Ok;
+use Phunkie\Streams\IO\File\Path;
 
 GET('/stream', fn(Request $req) =>
     io(fn() => 
-        Ok()->stream(
-            Stream::fromFile('large-file.json')
-                ->map(fn($line) => json_decode($line))
+        Ok(Stream(new Path('large-file.json'))
+            ->map(fn($line) => json_decode($line))
         )
     )
 );
@@ -146,10 +147,10 @@ $program = getUserFromDb($id)
             ->map(fn($profile) => ['user' => $user, 'profile' => $profile])
     )
     ->flatMap(fn($data) => 
-        io(fn() => Ok()->json($data))
+        io(fn() => Ok($data))
     )
     ->handleError(fn($e) => 
-        io(fn() => NotFound()->json(['error' => 'User not found']))
+        io(fn() => NotFound(['error' => 'User not found']))
     );
 
 $result = $program->unsafeRun();
