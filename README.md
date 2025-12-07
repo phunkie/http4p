@@ -124,8 +124,8 @@ Handle large responses efficiently:
 
 ```php
 use function Phunkie\Http4p\Response\Ok;
-use function Phunkie\Streams\IO\File\Path;
 
+// Path() is a global function, no import needed
 GET('/stream', fn() =>
     Ok(Stream(Path('large-file.json'))
         ->map(fn($line) => json_decode($line))
