@@ -31,16 +31,15 @@ composer require phunkie/http4p
 use Phunkie\Http4p\{Request, Response};
 use function Phunkie\Http4p\HttpRoutes;
 use function Phunkie\Http4p\Response\{Ok, Created};
-use function Phunkie\Effect\Functions\io\io;
 
 // Define routes
 $routes = HttpRoutes(
     GET('/users/:id', fn(Request $req) =>
-        io(fn() => Ok(['id' => $req->params['id']]))
+        Ok(['id' => $req->params['id']])
     ),
     
     POST('/users', fn(Request $req) =>
-        io(fn() => Created(['message' => 'User created']))
+        Created(['message' => 'User created'])
     )
 );
 
@@ -126,10 +125,8 @@ use function Phunkie\Http4p\Response\Ok;
 use Phunkie\Streams\IO\File\Path;
 
 GET('/stream', fn(Request $req) =>
-    io(fn() => 
-        Ok(Stream(new Path('large-file.json'))
-            ->map(fn($line) => json_decode($line))
-        )
+    Ok(Stream(new Path('large-file.json'))
+        ->map(fn($line) => json_decode($line))
     )
 );
 ```
@@ -146,12 +143,8 @@ $program = getUserFromDb($id)
         getProfileFromApi($user->id)
             ->map(fn($profile) => ['user' => $user, 'profile' => $profile])
     )
-    ->flatMap(fn($data) => 
-        io(fn() => Ok($data))
-    )
-    ->handleError(fn($e) => 
-        io(fn() => NotFound(['error' => 'User not found']))
-    );
+    ->flatMap(fn($data) => Ok($data))
+    ->handleError(fn($e) => NotFound(['error' => 'User not found']));
 
 $result = $program->unsafeRun();
 ```
