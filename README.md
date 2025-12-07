@@ -28,17 +28,19 @@ composer require phunkie/http4p
 ## Quick Start
 
 ```php
-use Phunkie\Http4p\{HttpRoutes, Response, Request};
+use Phunkie\Http4p\{Request, Response};
+use function Phunkie\Http4p\HttpRoutes;
+use function Phunkie\Http4p\Response\{Ok, Created};
 use function Phunkie\Effect\Functions\io\io;
 
 // Define routes
-$routes = HttpRoutes::of(
+$routes = HttpRoutes(
     GET('/users/:id', fn(Request $req) =>
-        io(fn() => Response::ok()->json(['id' => $req->params['id']]))
+        io(fn() => Ok()->json(['id' => $req->params['id']]))
     ),
     
     POST('/users', fn(Request $req) =>
-        io(fn() => Response::created()->json(['message' => 'User created']))
+        io(fn() => Created()->json(['message' => 'User created']))
     )
 );
 
@@ -57,7 +59,10 @@ $server->run()->unsafeRun();
 Define routes with pattern matching and type safety:
 
 ```php
-$routes = HttpRoutes::of(
+use function Phunkie\Http4p\HttpRoutes;
+use function Phunkie\Http4p\Response\{Ok, Created, NoContent, NotFound};
+
+$routes = HttpRoutes(
     GET('/api/tasks', fn(Request $req) => getAllTasks()),
     GET('/api/tasks/:id', fn(Request $req) => getTask($req->params['id'])),
     POST('/api/tasks', fn(Request $req) => createTask($req->body)),
@@ -66,17 +71,47 @@ $routes = HttpRoutes::of(
 );
 ```
 
-### Middleware Composition
+### Response Helpers
 
-Build middleware pipelines:
+Use functional response constructors:
 
 ```php
-$middleware = Middleware::compose(
-    Logger::middleware(),
-    Auth::middleware(),
-    CORS::middleware(['*']),
-    RateLimit::middleware(100, 60)
+use function Phunkie\Http4p\Response\{Ok, Created, Accepted, NoContent, BadRequest, NotFound, InternalServerError};
+
+// Success responses
+Ok()->json(['status' => 'success']);
+Created()->json(['id' => 123]);
+Accepted()->text('Processing');
+NoContent();
+
+// Error responses
+BadRequest()->json(['error' => 'Invalid input']);
+NotFound()->json(['error' => 'Resource not found']);
+InternalServerError()->text('Something went wrong');
+```
+
+### Middleware Composition
+
+Build middleware pipelines using functional composition:
+
+```php
+use function Phunkie\Http4p\Middleware\{compose, Logger, Auth, CORS, RateLimit};
+
+// Compose middleware functionally
+$middleware = compose(
+    Logger(),
+    Auth(),
+    CORS(['*']),
+    RateLimit(100, 60)
 );
+
+$app = $middleware($routes);
+
+// Alternative: Use combine method
+$middleware = Logger()
+    ->combine(Auth())
+    ->combine(CORS(['*']))
+    ->combine(RateLimit(100, 60));
 
 $app = $middleware($routes);
 ```
@@ -86,13 +121,14 @@ $app = $middleware($routes);
 Handle large responses efficiently:
 
 ```php
+use function Phunkie\Http4p\Response\Ok;
+
 GET('/stream', fn(Request $req) =>
     io(fn() => 
-        Response::ok()
-            ->stream(
-                Stream::fromFile('large-file.json')
-                    ->map(fn($line) => json_decode($line))
-            )
+        Ok()->stream(
+            Stream::fromFile('large-file.json')
+                ->map(fn($line) => json_decode($line))
+        )
     )
 );
 ```
@@ -102,14 +138,19 @@ GET('/stream', fn(Request $req) =>
 All HTTP operations are IO effects:
 
 ```php
-$program = for(
-    $user <- getUserFromDb($id),
-    $profile <- getProfileFromApi($user->id),
-    $response <- io(fn() => Response::ok()->json([
-        'user' => $user,
-        'profile' => $profile
-    ]))
-)->yield($response);
+use function Phunkie\Http4p\Response\{Ok, NotFound};
+
+$program = getUserFromDb($id)
+    ->flatMap(fn($user) => 
+        getProfileFromApi($user->id)
+            ->map(fn($profile) => ['user' => $user, 'profile' => $profile])
+    )
+    ->flatMap(fn($data) => 
+        io(fn() => Ok()->json($data))
+    )
+    ->handleError(fn($e) => 
+        io(fn() => NotFound()->json(['error' => 'User not found']))
+    );
 
 $result = $program->unsafeRun();
 ```
@@ -128,6 +169,51 @@ $program = $client
     );
 
 $user = $program->unsafeRun();
+```
+
+## API Reference
+
+### Response Constructors
+
+All response constructors are available as functions:
+
+```php
+// 2xx Success
+Ok()              // 200
+Created()         // 201
+Accepted()        // 202
+NoContent()       // 204
+
+// 3xx Redirection
+MovedPermanently($location)  // 301
+Found($location)             // 302
+SeeOther($location)          // 303
+
+// 4xx Client Errors
+BadRequest()      // 400
+Unauthorized()    // 401
+Forbidden()       // 403
+NotFound()        // 404
+MethodNotAllowed() // 405
+Conflict()        // 409
+
+// 5xx Server Errors
+InternalServerError()  // 500
+NotImplemented()       // 501
+ServiceUnavailable()   // 503
+```
+
+### Middleware
+
+All middleware are available as functions in the `Phunkie\Http4p\Middleware` namespace:
+
+```php
+Logger()              // Request/response logging
+Auth()                // Authentication
+CORS($origins)        // CORS headers
+RateLimit($max, $window)  // Rate limiting
+Timeout($seconds)     // Request timeout
+Compression()         // Response compression
 ```
 
 ## Documentation
