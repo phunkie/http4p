@@ -28,25 +28,26 @@ composer require phunkie/http4p
 ## Quick Start
 
 ```php
-use Phunkie\Http4p\{Request, Response};
-use function Phunkie\Http4p\HttpRoutes;
+use Phunkie\Http4p\Request;
+use function Phunkie\Http4p\{HttpRoutes, PhpBuiltInServerBuilder};
 use function Phunkie\Http4p\Response\{Ok, Created};
 
-// Define routes
+// Define routes - route parameters are passed as closure arguments
 $routes = HttpRoutes(
-    GET('/users/:id', fn(Request $req) =>
-        Ok(['id' => $req->params['id']])
+    GET('/users/:id', fn(int $id) =>
+        Ok(['id' => $id])
     ),
     
     POST('/users', fn(Request $req) =>
-        Created(['message' => 'User created'])
+        Created(['message' => 'User created', 'data' => $req->body])
     )
 );
 
-// Run server
-$server = HttpServer::create()
+// Build and run server
+$server = PhpBuiltInServerBuilder()
     ->withRoutes($routes)
-    ->bindHttp(8080);
+    ->withPort(8080)
+    ->build();
 
 $server->run()->unsafeRun();
 ```
@@ -55,18 +56,19 @@ $server->run()->unsafeRun();
 
 ### Type-Safe Routing
 
-Define routes with pattern matching and type safety:
+Define routes with pattern matching and type safety. Route parameters are automatically extracted and passed as typed arguments to your handlers:
 
 ```php
+use Phunkie\Http4p\Request;
 use function Phunkie\Http4p\HttpRoutes;
 use function Phunkie\Http4p\Response\{Ok, Created, NoContent, NotFound};
 
 $routes = HttpRoutes(
-    GET('/api/tasks', fn(Request $req) => getAllTasks()),
-    GET('/api/tasks/:id', fn(Request $req) => getTask($req->params['id'])),
+    GET('/api/tasks', fn() => getAllTasks()),
+    GET('/api/tasks/:id', fn(int $id) => getTask($id)),
     POST('/api/tasks', fn(Request $req) => createTask($req->body)),
-    PUT('/api/tasks/:id', fn(Request $req) => updateTask($req->params['id'], $req->body)),
-    DELETE('/api/tasks/:id', fn(Request $req) => deleteTask($req->params['id']))
+    PUT('/api/tasks/:id', fn(int $id, Request $req) => updateTask($id, $req->body)),
+    DELETE('/api/tasks/:id', fn(int $id) => deleteTask($id))
 );
 ```
 
@@ -122,10 +124,10 @@ Handle large responses efficiently:
 
 ```php
 use function Phunkie\Http4p\Response\Ok;
-use Phunkie\Streams\IO\File\Path;
+use function Phunkie\Streams\IO\File\Path;
 
-GET('/stream', fn(Request $req) =>
-    Ok(Stream(new Path('large-file.json'))
+GET('/stream', fn() =>
+    Ok(Stream(Path('large-file.json'))
         ->map(fn($line) => json_decode($line))
     )
 );
