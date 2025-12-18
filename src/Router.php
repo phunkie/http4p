@@ -48,4 +48,9 @@ final class Router
         // No route matched - 404
         return NotFound(['error' => 'Not Found', 'path' => $request->uri]);
     }
+
+    public function __invoke(Request $request): IO
+    {
+        return $this->route($request);
+    }
 }

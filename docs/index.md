@@ -26,6 +26,11 @@
 - [Custom Streams](streaming/custom.md) - Building custom streams
 - [Backpressure](streaming/backpressure.md) - Implicit flow control
 
+### Middleware
+- [Basics](middleware/basics.md) - How usage works
+- [Built-in](middleware/built-in.md) - Logger, Cors
+- [Custom](middleware/custom.md) - Writing your own
+
 ### Examples
 - [REST API](examples/rest-api.md) - Building a complete REST API
 

@@ -31,14 +31,22 @@ use function Phunkie\Http4p\Functions\InternalServerError;
  */
 final class PhpServer
 {
-    private Router $router;
+    /**
+     * @var callable(Request): IO<Response>
+     */
+    private $handler;
 
     /**
-     * @param ImmList<Route> $routes
+     * @param ImmList<Route>|callable(Request): IO<Response> $app
      */
-    public function __construct(ImmList $routes)
+    public function __construct(ImmList|callable $app)
     {
-        $this->router = new Router($routes);
+        if ($app instanceof ImmList) {
+            $router = new Router($app);
+            $this->handler = fn(Request $req) => $router->route($req);
+        } else {
+            $this->handler = $app;
+        }
     }
 
     /**
@@ -68,7 +76,7 @@ final class PhpServer
              $body = \Stream(new Path('php://input'));
 
             return new Request($method, $uri, Headers($headers), $body);
-        })->flatMap(fn ($request) => $this->router->route($request))
+        })->flatMap(fn ($request) => ($this->handler)($request))
             ->handleError(fn ($e) => InternalServerError([
                 'error' => 'Internal Server Error',
                 'message' => $e->getMessage(),
