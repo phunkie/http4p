@@ -1,30 +1,66 @@
 # Streaming in Http4p
 
-Http4p uses `phunkie/streams` to provide efficient, lazy, and memory-safe streaming for both Requests and Responses.
+In **Http4p**, streaming is not an afterthought or a special mode—it is the default.
 
-## The Stream Type
+Every `Request` body is a Stream.
+Every `Response` body is a Stream.
 
-The core type is `Phunkie\Streams\Type\Stream`. A Stream represents a sequence of values that are computed (pulled) on demand.
+This architecture ensures that your application uses constant memory, regardless of whether you are serving a 5KB JSON payload or a 5GB video file.
 
-- **Request Body**: `Request->body` is always a `Stream`. For small bodies, it's a stream of one value. For large inputs (file uploads), it streams from `php://input`.
-- **Response Body**: `Response->body` is generally a `Stream`. This allows sending large datasets or files without loading them entirely into memory.
+## Streaming Responses
 
-## Creating Streams
+When you create a response, you are providing a description of a stream of data. The server pulls from this stream and sends chunks to the client as they become available.
 
-Use the global `Stream()` helper or specific factory functions:
-
+### 1. Basic Output
+Simple values are automatically converted to streams:
 ```php
-// Simple stream
-$stream = Stream("Hello");
-
-// Stream from array
-$stream = Stream([1, 2, 3]);
-
-// Stream from resource (e.g. file)
-use Phunkie\Streams\IO\Read;
-$stream = Stream(new Read('/path/to/file'));
+GET('/', fn() => Ok("Hello World")); // Streams: "Hello", " ", "World" (conceptually)
 ```
 
-## Consuming Streams
+### 2. Generating Data (Push)
+You can stream data dynamically to the client. This is useful for large reports, logs, or real-time event feeds.
 
-On the server side, streams are consumed efficiently (chunk by chunk) to send data to the client. You rarely need to consume them manually unless you are writing middleware or custom handlers.
+```php
+use function Phunkie\Streams\Functions\stream\Stream;
+
+GET('/numbers', fn() =>
+    // Create a stream that yields numbers 1 to 10
+    Ok(Stream(range(1, 10))
+        ->map(fn($n) => "$n\n") // Format as lines
+        ->evalTap(fn() => io(fn() => usleep(100000))) // Simulate work/delay
+    )
+);
+```
+In this example, the client receives each number as it is processed. The server does not wait for the loop to finish before sending the first byte.
+
+### 3. File Streaming
+For serving files, use the `FileResponse` helper which sets up an optimized stream from disk.
+([Read more in File Streaming](../streaming/files.md))
+
+```php
+use function Phunkie\Http4p\Functions\FileResponse;
+GET('/video', fn() => FileResponse('/media/movie.mp4'));
+```
+
+---
+
+## Streaming Requests
+
+Incoming request bodies are also Streams. This allows you to process uploads or large payloads chunk-by-chunk.
+
+### 1. Process as you read
+Instead of reading the whole body into memory with `$req->body->readAll()`, you can map over the stream.
+
+```php
+POST('/uppercase', fn(Request $req) =>
+    // Create a response that echoes the request body, transformed to uppercase
+    Ok($req->body->map(fn($chunk) => strtoupper($chunk)))
+);
+```
+If you pipe a large file to this endpoint, it will stream the uppercase version back immediately, using negligible memory.
+
+## Why this matters
+
+1.  **Time to First Byte (TTFB)**: Clients see data immediately.
+2.  **Memory Safety**: You never load 100MB of data into RAM to process it.
+3.  **Backpressure**: If the client is slow, `http4p` stops pulling from your source stream automatically.
