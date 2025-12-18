@@ -11,6 +11,7 @@
 
 namespace {
 
+    use Phunkie\Streams\Type\Stream;
     use Phunkie\Effect\IO\IO;
     use Phunkie\Http4p\Encoder\JsonEncoder;
     use Phunkie\Http4p\EntityEncoder;
@@ -24,11 +25,6 @@ namespace {
     /**
      * Create a Response.
      *
-     * This function accepts strings for the body and will convert them to Stream<F, Byte>
-     * when Phunkie\Streams is integrated. For now, strings are passed through directly.
-     *
-     * When using `new Response()` directly, you should pass the proper Stream type.
-     *
      * @param Status $status
      * @param Headers|null $headers
      * @param mixed $body String or Stream<F, Byte>
@@ -36,8 +32,13 @@ namespace {
      */
     function Response(Status $status, ?Headers $headers = null, mixed $body = ''): ResponseClass
     {
-        // TODO: Convert string to Stream<F, Byte> when Streams is available
-        return new ResponseClass($status, $headers ?? Headers(), $body);
+        $headers = $headers ?? Headers();
+
+        if ($body instanceof Stream) {
+            return new ResponseClass($status, $headers, $body);
+        }
+
+        return new ResponseClass($status, $headers, \Stream($body));
     }
 
     /**
@@ -163,6 +164,7 @@ namespace Phunkie\Http4p\Functions\response {
     use Phunkie\Http4p\Headers;
     use Phunkie\Http4p\Response as ResponseClass;
     use Phunkie\Http4p\Status;
+    use Phunkie\Streams\Type\Stream;
 
     use function Phunkie\Effect\Functions\io\io;
 
@@ -181,6 +183,10 @@ namespace Phunkie\Http4p\Functions\response {
 
             if ($body === null) {
                 return Response($status, Headers(), '');
+            }
+
+            if ($body instanceof Stream) {
+                return Response($status, Headers(), $body);
             }
 
             $encodedBody = $encoder->encode($body);

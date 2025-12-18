@@ -12,7 +12,7 @@ class ResponseConstructorsTest extends TestCase
         
         $this->assertEquals(200, $response->status->code);
         $this->assertEquals('application/json', $response->headers->get('content-type'));
-        $this->assertEquals('{"message":"success"}', $response->body);
+        $this->assertEquals(['{"message":"success"}'], $response->body->toArray());
     }
 
     public function test_created_response()
@@ -20,7 +20,7 @@ class ResponseConstructorsTest extends TestCase
         $response = Created(['id' => 1])->unsafeRun();
         
         $this->assertEquals(201, $response->status->code);
-        $this->assertEquals('{"id":1}', $response->body);
+        $this->assertEquals(['{"id":1}'], $response->body->toArray());
     }
 
     public function test_no_content_response()
@@ -28,7 +28,7 @@ class ResponseConstructorsTest extends TestCase
         $response = NoContent()->unsafeRun();
         
         $this->assertEquals(204, $response->status->code);
-        $this->assertEquals('', $response->body);
+        $this->assertEquals([''], $response->body->toArray());
     }
 
     public function test_bad_request_response()
@@ -36,7 +36,7 @@ class ResponseConstructorsTest extends TestCase
         $response = BadRequest(['error' => 'Invalid input'])->unsafeRun();
         
         $this->assertEquals(400, $response->status->code);
-        $this->assertEquals('{"error":"Invalid input"}', $response->body);
+        $this->assertEquals(['{"error":"Invalid input"}'], $response->body->toArray());
     }
 
     public function test_not_found_response()
@@ -44,7 +44,7 @@ class ResponseConstructorsTest extends TestCase
         $response = NotFound(['error' => 'Resource not found'])->unsafeRun();
         
         $this->assertEquals(404, $response->status->code);
-        $this->assertEquals('{"error":"Resource not found"}', $response->body);
+        $this->assertEquals(['{"error":"Resource not found"}'], $response->body->toArray());
     }
 
     public function test_internal_server_error_response()
@@ -52,7 +52,7 @@ class ResponseConstructorsTest extends TestCase
         $response = InternalServerError(['error' => 'Something went wrong'])->unsafeRun();
         
         $this->assertEquals(500, $response->status->code);
-        $this->assertEquals('{"error":"Something went wrong"}', $response->body);
+        $this->assertEquals(['{"error":"Something went wrong"}'], $response->body->toArray());
     }
 
     public function test_response_with_null_body()
@@ -60,7 +60,7 @@ class ResponseConstructorsTest extends TestCase
         $response = Ok(null)->unsafeRun();
         
         $this->assertEquals(200, $response->status->code);
-        $this->assertEquals('', $response->body);
+        $this->assertEquals([''], $response->body->toArray());
     }
 
     public function test_response_returns_io()

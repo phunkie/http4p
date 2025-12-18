@@ -4,6 +4,7 @@ namespace Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
 use Phunkie\Http4p\Method;
+use Phunkie\Http4p\Request;
 use Phunkie\Http4p\Router;
 
 class RouterTest extends TestCase
@@ -21,7 +22,7 @@ class RouterTest extends TestCase
         $response = $router->route($request)->unsafeRun();
         
         $this->assertEquals(200, $response->status->code);
-        $this->assertEquals('{"users":[]}', $response->body);
+        $this->assertEquals(['{"users":[]}'], $response->body->toArray());
     }
 
     public function test_router_returns_404_for_unmatched_route()
@@ -50,7 +51,7 @@ class RouterTest extends TestCase
         $response = $router->route($request)->unsafeRun();
         
         $this->assertEquals(200, $response->status->code);
-        $this->assertEquals('{"id":42}', $response->body);
+        $this->assertEquals(['{"id":42}'], $response->body->toArray());
     }
 
     public function test_router_passes_multiple_path_params()
@@ -66,13 +67,13 @@ class RouterTest extends TestCase
         
         $response = $router->route($request)->unsafeRun();
         
-        $this->assertEquals('{"userId":1,"postId":99}', $response->body);
+        $this->assertEquals(['{"userId":1,"postId":99}'], $response->body->toArray());
     }
 
     public function test_router_passes_request_when_handler_expects_it()
     {
         $routes = HttpRoutes(
-            POST('/users', fn(\Phunkie\Http4p\Request $req) => Created(['name' => $req->body['name']]))
+            POST('/users', fn(Request $req) => Created(['name' => $req->body->toArray()[0]['name']]))
         );
         
         $router = new Router($routes);
@@ -81,7 +82,7 @@ class RouterTest extends TestCase
         $response = $router->route($request)->unsafeRun();
         
         $this->assertEquals(201, $response->status->code);
-        $this->assertEquals('{"name":"Alice"}', $response->body);
+        $this->assertEquals(['{"name":"Alice"}'], $response->body->toArray());
     }
 
     public function test_router_handles_different_http_methods()
@@ -96,15 +97,15 @@ class RouterTest extends TestCase
         $router = new Router($routes);
         
         $getResponse = $router->route(Request(Method::GET, '/resource'))->unsafeRun();
-        $this->assertEquals('{"method":"GET"}', $getResponse->body);
+        $this->assertEquals(['{"method":"GET"}'], $getResponse->body->toArray());
         
         $postResponse = $router->route(Request(Method::POST, '/resource'))->unsafeRun();
-        $this->assertEquals('{"method":"POST"}', $postResponse->body);
+        $this->assertEquals(['{"method":"POST"}'], $postResponse->body->toArray());
         
         $putResponse = $router->route(Request(Method::PUT, '/resource'))->unsafeRun();
-        $this->assertEquals('{"method":"PUT"}', $putResponse->body);
+        $this->assertEquals(['{"method":"PUT"}'], $putResponse->body->toArray());
         
         $deleteResponse = $router->route(Request(Method::DELETE, '/resource'))->unsafeRun();
-        $this->assertEquals('{"method":"DELETE"}', $deleteResponse->body);
+        $this->assertEquals(['{"method":"DELETE"}'], $deleteResponse->body->toArray());
     }
 }

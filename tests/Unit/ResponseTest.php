@@ -16,7 +16,7 @@ class ResponseTest extends TestCase
         
         $this->assertEquals(200, $response->status->code);
         $this->assertEquals('text/html', $response->headers->get('content-type'));
-        $this->assertEquals($body, $response->body);
+        $this->assertEquals([$body], $response->body->toArray());
     }
 
     public function test_response_with_defaults()
@@ -26,7 +26,7 @@ class ResponseTest extends TestCase
         
         $this->assertEquals(200, $response->status->code);
         $this->assertEquals([], $response->headers->toArray());
-        $this->assertEquals('', $response->body);
+        $this->assertEquals([''], $response->body->toArray());
     }
 
     public function test_response_with_status()
@@ -60,10 +60,10 @@ class ResponseTest extends TestCase
     public function test_response_with_body()
     {
         $response = Response(StatusOk(), null, 'original');
-        $updated = $response->withBody('updated');
+        $updated = $response->withBody(Stream('updated'));
         
-        $this->assertEquals('original', $response->body); // Original unchanged
-        $this->assertEquals('updated', $updated->body);
+        $this->assertEquals(['original'], $response->body->toArray()); // Original unchanged
+        $this->assertEquals(['updated'], $updated->body->toArray());
     }
 
     public function test_response_immutability()

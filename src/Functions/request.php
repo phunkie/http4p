@@ -14,6 +14,7 @@ namespace {
     use Phunkie\Http4p\Method;
     use Phunkie\Http4p\Request as RequestClass;
     use Phunkie\Http4p\Headers;
+    use Phunkie\Streams\Type\Stream;
 
     /**
      * Create a Request.
@@ -26,7 +27,14 @@ namespace {
      */
     function Request(Method $method, string $uri, ?Headers $headers = null, mixed $body = null): RequestClass
     {
-        return new RequestClass($method, $uri, $headers ?? Headers(), $body);
+        $headers = $headers ?? Headers();
+        $body = $body ?? '';
+
+        if ($body instanceof Stream) {
+            return new RequestClass($method, $uri, $headers, $body);
+        }
+
+        return new RequestClass($method, $uri, $headers, \Stream($body));
     }
 }
 

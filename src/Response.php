@@ -11,18 +11,12 @@
 
 namespace Phunkie\Http4p;
 
+use Phunkie\Streams\Type\Stream;
+
 /**
  * HTTP Response with streaming body.
+ * An HTTP Response.
  *
- * Response<F> where F is the effect type (typically IO).
- * The body should be a Stream<F, Byte> (Phunkie\Streams\Types\Stream) allowing constant memory usage.
- *
- * For now, body is typed as mixed until Phunkie\Streams is updated to work with effect ^1.2.
- * The body can be:
- * - string (for simple responses)
- * - Stream<F, Byte> (for streaming responses - future)
- *
- * @template F
  * @psalm-immutable
  */
 final readonly class Response
@@ -30,12 +24,12 @@ final readonly class Response
     /**
      * @param Status $status
      * @param Headers $headers
-     * @param mixed $body String for now, will be Stream<F, Byte> when streams is updated
+     * @param Stream $body
      */
     public function __construct(
         public Status $status,
         public Headers $headers,
-        public mixed $body
+        public Stream $body
     ) {}
 
     public function withStatus(Status $status): self
@@ -53,7 +47,7 @@ final readonly class Response
         return new self($this->status, $this->headers->put($name, $value), $this->body);
     }
 
-    public function withBody(mixed $body): self
+    public function withBody(Stream $body): self
     {
         return new self($this->status, $this->headers, $body);
     }

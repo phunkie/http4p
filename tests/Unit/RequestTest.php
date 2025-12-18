@@ -14,7 +14,7 @@ class RequestTest extends TestCase
         $this->assertEquals(Method::GET, $request->method);
         $this->assertEquals('/users', $request->uri);
         $this->assertEquals([], $request->headers->toArray());
-        $this->assertNull($request->body);
+        $this->assertEquals([''], $request->body->toArray());
         $this->assertEquals([], $request->pathParams);
     }
 
@@ -31,7 +31,7 @@ class RequestTest extends TestCase
         $body = ['name' => 'Alice'];
         $request = Request(Method::POST, '/users', null, $body);
         
-        $this->assertEquals($body, $request->body);
+        $this->assertEquals([$body], $request->body->toArray());
     }
 
     public function test_request_with_path_params()
@@ -46,10 +46,10 @@ class RequestTest extends TestCase
     public function test_request_with_body_method()
     {
         $request = Request(Method::GET, '/users');
-        $withBody = $request->withBody(['data' => 'test']);
+        $withBody = $request->withBody(Stream(['data' => 'test']));
         
-        $this->assertNull($request->body); // Original unchanged
-        $this->assertEquals(['data' => 'test'], $withBody->body);
+        $this->assertEquals([''], $request->body->toArray()); // Original unchanged
+        $this->assertEquals([['data' => 'test']], $withBody->body->toArray());
     }
 
     public function test_request_with_header_method()
@@ -64,10 +64,10 @@ class RequestTest extends TestCase
     public function test_request_immutability()
     {
         $original = Request(Method::GET, '/test');
-        $modified = $original->withBody(['foo' => 'bar']);
+        $modified = $original->withBody(Stream(['foo' => 'bar']));
         
         $this->assertNotSame($original, $modified);
-        $this->assertNull($original->body);
-        $this->assertEquals(['foo' => 'bar'], $modified->body);
+        $this->assertEquals([''], $original->body->toArray());
+        $this->assertEquals([['foo' => 'bar']], $modified->body->toArray());
     }
 }

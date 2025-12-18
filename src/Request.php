@@ -11,6 +11,8 @@
 
 namespace Phunkie\Http4p;
 
+use Phunkie\Streams\Type\Stream;
+
 /**
  * HTTP Request.
  *
@@ -22,14 +24,14 @@ final readonly class Request
      * @param Method $method
      * @param string $uri
      * @param Headers $headers
-     * @param mixed $body Raw body (string, array, or Stream)
+     * @param Stream $body
      * @param array<string, mixed> $pathParams Extracted path parameters
      */
     public function __construct(
         public Method $method,
         public string $uri,
         public Headers $headers,
-        public mixed $body = null,
+        public Stream $body,
         public array $pathParams = []
     ) {}
 
@@ -38,7 +40,7 @@ final readonly class Request
         return new self($this->method, $this->uri, $this->headers, $this->body, $params);
     }
 
-    public function withBody(mixed $body): self
+    public function withBody(Stream $body): self
     {
         return new self($this->method, $this->uri, $this->headers, $body, $this->pathParams);
     }
