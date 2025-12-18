@@ -27,5 +27,5 @@ use Phunkie\Streams\Pull\PDOPull;
 use Phunkie\Streams\Type\Stream;
 
 $pull = new PDOPull($stmt);
-$stream = Stream::fromPull($pull);
+$stream = Stream($pull);
 ```

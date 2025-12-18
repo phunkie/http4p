@@ -16,12 +16,12 @@ class RandomNumberPull implements Pull {
 
 ## Creating the Stream
 
-Use the `Stream::fromPull` factory method to create a Stream from your custom Pull implementation.
+Use the `Stream()` helper to create a Stream from your custom Pull implementation.
 
 ```php
 use Phunkie\Streams\Type\Stream;
 
-$stream = Stream::fromPull(new RandomNumberPull());
+$stream = Stream(new RandomNumberPull());
 ```
 
 This ensures your custom source integrates seamlessly with all Stream operations (map, filter, etc.) and `http4p` Responses.
