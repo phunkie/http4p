@@ -8,7 +8,7 @@ Http4p provides a purely functional approach to building HTTP servers and client
 
 - **Type-safe routing** - Compile-time route validation
 - **Effect-based handlers** - All HTTP operations as IO effects
-- **Streaming bodies** - Responses use `Stream<F, Byte>` for constant memory usage
+- **Streaming bodies** - Responses use `Stream` for constant memory usage
 - **Composable middleware** - Build complex pipelines from simple parts
 - **Functional error handling** - No exceptions, just values
 
@@ -29,13 +29,13 @@ composer require phunkie/http4p
 
 ### Response Model
 
-Http4p uses `Response<F>` where the body is a `Stream<F, Byte>`:
+Http4p uses `Response` where the body is a `Stream`:
 
 ```php
-class Response<F> {
+class Response {
     public Status $status;
     public Headers $headers;
-    public Stream<F, Byte> $body;  // Streaming body
+    public Stream $body;  // Stream
 }
 ```
 
@@ -47,28 +47,31 @@ This design enables:
 
 ### Type Signatures
 
-Route handlers return `IO<Response<IO>>`:
+Route handlers return `IO`:
 
 ```php
 // Handler signature
-fn(int $id): IO<Response<IO>>
+// fn(int $id): IO<Response>
+fn(int $id): IO;
 
-// Response constructors
-Ok<A>(A $value): IO<Response<IO>>           // Encodes value to Stream<IO, Byte>
-Ok(Stream<IO, Byte> $stream): IO<Response<IO>>  // Uses stream directly
+// Response constructors return IO<Response>
+Ok($value);        // Encodes value to Stream
+Ok($stream);       // Uses stream directly
 ```
 
 ## Quick Start
 
 ```php
 use Phunkie\Http4p\Request;
-use function Phunkie\Http4p\Functions\{HttpRoutes, PhpBuiltInServerBuilder};
-use function Phunkie\Http4p\Response\{Ok, Created};
+use Phunkie\Http4p\Server\PhpServer;
+use function Phunkie\Http4p\Functions\HttpRoutes;
+use function Phunkie\Http4p\Functions\routes\{GET, POST};
+use function Phunkie\Http4p\Functions\response\{Ok, Created};
 
-// Define routes - handlers return IO<Response<IO>>
+// Define routes - handlers return IO<Response>
 $routes = HttpRoutes(
     GET('/users/:id', fn(int $id) =>
-        Ok(['id' => $id])  // EntityEncoder converts to Stream<IO, Byte>
+        Ok(['id' => $id])  // EntityEncoder converts to Stream
     ),
     
     POST('/users', fn(Request $req) =>
