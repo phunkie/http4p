@@ -47,7 +47,8 @@
             "src/Functions/response.php",
             "src/Functions/client.php",
             "src/Functions/file.php",
-            "src/Functions/middleware.php"
+            "src/Functions/middleware.php",
+            "src/Functions/decoding.php"
         ]
     },
     "autoload-dev": {

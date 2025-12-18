@@ -12,8 +12,8 @@ The recommended approach is to decode the entity explicitly within your handler.
 
 ```php
 POST('/users', fn(Request $req) =>
-    $req->body->readAll()->flatMap(function($content) {
-        $data = json_decode($content, true);
+    // decode defaults to JSON
+    decode($req)->flatMap(function($data) {
         
         if (!$data) return BadRequest("Invalid JSON");
         
