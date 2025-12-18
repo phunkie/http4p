@@ -13,10 +13,13 @@ Namespace: `Phunkie\Http4p\Functions\response`
 
 - `Ok(mixed $body = null, array $headers = []): Response`
 - `Created(mixed $body = null, array $headers = []): Response`
-- `NotFound(mixed $body = null): Response`
-- `BadRequest(mixed $body = null): Response`
-- `InternalServerError(mixed $body = null): Response`
+- `Accepted(mixed $body = null, array $headers = []): Response`
 - `NoContent(): Response`
+- `BadRequest(mixed $body = null): Response`
+- `Unauthorized(mixed $body = null): Response`
+- `Forbidden(mixed $body = null): Response`
+- `NotFound(mixed $body = null): Response`
+- `InternalServerError(mixed $body = null): Response`
 
 ## Streaming
 - `Stream(mixed $source): Stream`
