@@ -24,13 +24,19 @@ namespace {
     /**
      * Create a Response.
      *
+     * This function accepts strings for the body and will convert them to Stream<F, Byte>
+     * when Phunkie\Streams is integrated. For now, strings are passed through directly.
+     *
+     * When using `new Response()` directly, you should pass the proper Stream type.
+     *
      * @param Status $status
      * @param Headers|null $headers
-     * @param mixed $body
+     * @param mixed $body String or Stream<F, Byte>
      * @return ResponseClass
      */
     function Response(Status $status, ?Headers $headers = null, mixed $body = ''): ResponseClass
     {
+        // TODO: Convert string to Stream<F, Byte> when Streams is available
         return new ResponseClass($status, $headers ?? Headers(), $body);
     }
 
@@ -155,10 +161,13 @@ namespace Phunkie\Http4p\Functions\response {
     use Phunkie\Http4p\Encoder\JsonEncoder;
     use Phunkie\Http4p\EntityEncoder;
     use Phunkie\Http4p\Headers;
-    use Phunkie\Http4p\Response;
+    use Phunkie\Http4p\Response as ResponseClass;
     use Phunkie\Http4p\Status;
 
     use function Phunkie\Effect\Functions\io\io;
+
+    // Import global Response function
+    use function Response;
 
     /**
      * Helper to create a response with encoded body.
@@ -171,13 +180,13 @@ namespace Phunkie\Http4p\Functions\response {
             $encoder = $encoder ?? new JsonEncoder();
 
             if ($body === null) {
-                return new Response($status, Headers(), '');
+                return Response($status, Headers(), '');
             }
 
             $encodedBody = $encoder->encode($body);
             $headers = Headers(['content-type' => $encoder->contentType()]);
 
-            return new Response($status, $headers, $encodedBody);
+            return Response($status, $headers, $encodedBody);
         });
     }
 }
