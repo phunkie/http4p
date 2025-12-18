@@ -11,25 +11,17 @@
 
 namespace {
 
-    use Phunkie\Http4p\Headers;
+    use Phunkie\Http4p\Headers as HeadersClass;
     use Phunkie\Types\ImmMap;
 
     /**
-     * Create empty Headers.
-     */
-    function EmptyHeaders(): Headers
-    {
-        return new Headers(ImmMap());
-    }
-
-    /**
-     * Create Headers from array.
+     * Create Headers from array or empty.
      *
      * @param array<string, string> $headers
      */
-    function HeadersOf(array $headers): Headers
+    function Headers(array $headers = []): HeadersClass
     {
-        return new Headers(ImmMap($headers));
+        return new HeadersClass(ImmMap($headers));
     }
 }
 

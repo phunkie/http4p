@@ -158,11 +158,11 @@ namespace Phunkie\Http4p\Functions\response {
             $encoder = $encoder ?? new JsonEncoder();
 
             if ($body === null) {
-                return new Response($status, EmptyHeaders(), '');
+                return new Response($status, Headers(), '');
             }
 
             $encodedBody = $encoder->encode($body);
-            $headers = HeadersOf(['content-type' => $encoder->contentType()]);
+            $headers = Headers(['content-type' => $encoder->contentType()]);
 
             return new Response($status, $headers, $encodedBody);
         });

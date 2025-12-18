@@ -69,7 +69,7 @@ final class PhpServer
                 $body = json_decode($body, true);
             }
 
-            $request = new Request($method, $uri, Headers::of($headers), $body);
+            $request = new Request($method, $uri, Headers($headers), $body);
 
             return $request;
         })->flatMap(fn ($request) => $this->router->route($request))

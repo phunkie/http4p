@@ -26,7 +26,7 @@ namespace {
      */
     function RequestOf(Method $method, string $uri, ?Headers $headers = null, mixed $body = null): Request
     {
-        return new Request($method, $uri, $headers ?? EmptyHeaders(), $body);
+        return new Request($method, $uri, $headers ?? Headers(), $body);
     }
 }
 
