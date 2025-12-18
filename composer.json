@@ -33,6 +33,7 @@
         "files": [
             "src/Functions/status.php",
             "src/Functions/headers.php",
+            "src/Functions/request.php",
             "src/Functions/routes.php",
             "src/Functions/response.php",
             "src/Functions/client.php"

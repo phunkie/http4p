@@ -33,11 +33,6 @@ final readonly class Request
         public array $pathParams = []
     ) {}
 
-    public static function of(Method $method, string $uri, Headers $headers = null, mixed $body = null): self
-    {
-        return new self($method, $uri, $headers ?? Headers::empty(), $body);
-    }
-
     public function withPathParams(array $params): self
     {
         return new self($this->method, $this->uri, $this->headers, $this->body, $params);

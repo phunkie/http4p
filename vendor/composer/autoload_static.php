@@ -24,6 +24,7 @@ class ComposerStaticInitfcf658ba3b25935c9e6be8ad3754d94e
         '256cf8a8c741d74277ab86b0625409d5' => __DIR__ . '/..' . '/phunkie/effect/src/Functions/common.php',
         'ddffd57c4c2afaac75c4ecec1eea74cb' => __DIR__ . '/../..' . '/src/Functions/status.php',
         '3153064c28d546ad2daa0371b41008d6' => __DIR__ . '/../..' . '/src/Functions/headers.php',
+        '9c8be44b5bd9ce1a810809067faa2e0a' => __DIR__ . '/../..' . '/src/Functions/request.php',
         '502dd52428f72045ad6a901a4cbfa537' => __DIR__ . '/../..' . '/src/Functions/routes.php',
         'd1a7fd0755859f7dbfc4e881b8c05d30' => __DIR__ . '/../..' . '/src/Functions/response.php',
         '13ba2c548abd1b0a382ce2f73e362d49' => __DIR__ . '/../..' . '/src/Functions/client.php',

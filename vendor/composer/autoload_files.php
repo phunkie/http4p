@@ -23,6 +23,7 @@ return array(
     '256cf8a8c741d74277ab86b0625409d5' => $vendorDir . '/phunkie/effect/src/Functions/common.php',
     'ddffd57c4c2afaac75c4ecec1eea74cb' => $baseDir . '/src/Functions/status.php',
     '3153064c28d546ad2daa0371b41008d6' => $baseDir . '/src/Functions/headers.php',
+    '9c8be44b5bd9ce1a810809067faa2e0a' => $baseDir . '/src/Functions/request.php',
     '502dd52428f72045ad6a901a4cbfa537' => $baseDir . '/src/Functions/routes.php',
     'd1a7fd0755859f7dbfc4e881b8c05d30' => $baseDir . '/src/Functions/response.php',
     '13ba2c548abd1b0a382ce2f73e362d49' => $baseDir . '/src/Functions/client.php',
