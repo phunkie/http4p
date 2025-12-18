@@ -1,0 +1,170 @@
+<?php
+
+/*
+ * This file is part of Phunkie Http4p.
+ *
+ * (c) Marcello Duarte <marcello.duarte@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace {
+
+    use Phunkie\Effect\IO\IO;
+    use Phunkie\Http4p\Encoder\JsonEncoder;
+    use Phunkie\Http4p\EntityEncoder;
+    use Phunkie\Http4p\Headers;
+    use Phunkie\Http4p\Response;
+    use Phunkie\Http4p\Status;
+
+    use function Phunkie\Effect\Functions\io\io;
+    use function Phunkie\Http4p\Functions\response\createResponse;
+
+    /**
+     * Create a 200 OK response.
+     *
+     * @template A
+     * @param A $body
+     * @param EntityEncoder|null $encoder
+     * @return IO<Response>
+     */
+    function Ok(mixed $body = null, ?EntityEncoder $encoder = null): IO
+    {
+        return createResponse(StatusOk(), $body, $encoder);
+    }
+
+    /**
+     * Create a 201 Created response.
+     *
+     * @template A
+     * @param A $body
+     * @param EntityEncoder|null $encoder
+     * @return IO<Response>
+     */
+    function Created(mixed $body = null, ?EntityEncoder $encoder = null): IO
+    {
+        return createResponse(StatusCreated(), $body, $encoder);
+    }
+
+    /**
+     * Create a 202 Accepted response.
+     *
+     * @template A
+     * @param A $body
+     * @param EntityEncoder|null $encoder
+     * @return IO<Response>
+     */
+    function Accepted(mixed $body = null, ?EntityEncoder $encoder = null): IO
+    {
+        return createResponse(StatusAccepted(), $body, $encoder);
+    }
+
+    /**
+     * Create a 204 No Content response.
+     *
+     * @return IO<Response>
+     */
+    function NoContent(): IO
+    {
+        return createResponse(StatusNoContent(), null);
+    }
+
+    /**
+     * Create a 400 Bad Request response.
+     *
+     * @template A
+     * @param A $body
+     * @param EntityEncoder|null $encoder
+     * @return IO<Response>
+     */
+    function BadRequest(mixed $body = null, ?EntityEncoder $encoder = null): IO
+    {
+        return createResponse(StatusBadRequest(), $body, $encoder);
+    }
+
+    /**
+     * Create a 401 Unauthorized response.
+     *
+     * @template A
+     * @param A $body
+     * @param EntityEncoder|null $encoder
+     * @return IO<Response>
+     */
+    function Unauthorized(mixed $body = null, ?EntityEncoder $encoder = null): IO
+    {
+        return createResponse(StatusUnauthorized(), $body, $encoder);
+    }
+
+    /**
+     * Create a 403 Forbidden response.
+     *
+     * @template A
+     * @param A $body
+     * @param EntityEncoder|null $encoder
+     * @return IO<Response>
+     */
+    function Forbidden(mixed $body = null, ?EntityEncoder $encoder = null): IO
+    {
+        return createResponse(StatusForbidden(), $body, $encoder);
+    }
+
+    /**
+     * Create a 404 Not Found response.
+     *
+     * @template A
+     * @param A $body
+     * @param EntityEncoder|null $encoder
+     * @return IO<Response>
+     */
+    function NotFound(mixed $body = null, ?EntityEncoder $encoder = null): IO
+    {
+        return createResponse(StatusNotFound(), $body, $encoder);
+    }
+
+    /**
+     * Create a 500 Internal Server Error response.
+     *
+     * @template A
+     * @param A $body
+     * @param EntityEncoder|null $encoder
+     * @return IO<Response>
+     */
+    function InternalServerError(mixed $body = null, ?EntityEncoder $encoder = null): IO
+    {
+        return createResponse(StatusInternalServerError(), $body, $encoder);
+    }
+}
+
+namespace Phunkie\Http4p\Functions\response {
+
+    use Phunkie\Effect\IO\IO;
+    use Phunkie\Http4p\Encoder\JsonEncoder;
+    use Phunkie\Http4p\EntityEncoder;
+    use Phunkie\Http4p\Headers;
+    use Phunkie\Http4p\Response;
+    use Phunkie\Http4p\Status;
+
+    use function Phunkie\Effect\Functions\io\io;
+
+    /**
+     * Helper to create a response with encoded body.
+     *
+     * @internal
+     */
+    function createResponse(Status $status, mixed $body, ?EntityEncoder $encoder = null): IO
+    {
+        return io(function () use ($status, $body, $encoder) {
+            $encoder = $encoder ?? new JsonEncoder();
+
+            if ($body === null) {
+                return new Response($status, EmptyHeaders(), '');
+            }
+
+            $encodedBody = $encoder->encode($body);
+            $headers = HeadersOf(['content-type' => $encoder->contentType()]);
+
+            return new Response($status, $headers, $encodedBody);
+        });
+    }
+}

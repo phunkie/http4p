@@ -1,0 +1,39 @@
+services:
+    # IO generic method return types
+    -
+        class: Phunkie\PHPStan\GenericMethodReturnTypeExtension
+        arguments:
+            targetClass: Phunkie\Effect\IO\IO
+            methods:
+                -
+                    method: attempt
+                    pattern: wrap
+                    wrapper: Phunkie\Validation\Validation
+                    fixedTypes: [Throwable]
+                -
+                    method: zipWith
+                    pattern: pair
+                    pairClass: Phunkie\Types\Pair
+                -
+                    method: map
+                    pattern: map
+                -
+                    method: flatMap
+                    pattern: flatMap
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension
+
+    # Validation generic method return types
+    -
+        class: Phunkie\PHPStan\GenericMethodReturnTypeExtension
+        arguments:
+            targetClass: Phunkie\Validation\Validation
+            methods:
+                -
+                    method: map
+                    pattern: map
+                -
+                    method: flatMap
+                    pattern: flatMap
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension

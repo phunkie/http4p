@@ -1,0 +1,62 @@
+{
+    "name": "phunkie/phunkie",
+    "description": "Functional structures library for PHP",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Marcello Duarte",
+            "homepage": "http://marcelloduarte.net/"
+        }
+    ],
+    "require": {
+        "php": "^8.2 || ^8.3 || ^8.4"
+    },
+    "require-dev": {
+        "ergebnis/composer-normalize": "^2",
+        "friendsofphp/php-cs-fixer": "^3.90",
+        "giorgiosironi/eris": "^0",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^9",
+        "phunkie/phpstan": "@dev"
+    },
+    "autoload": {
+        "psr-0": {
+            "": [
+                "src/"
+            ]
+        },
+        "files": [
+            "src/Phunkie/Functions/common.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "\\spec\\": [
+                "spec/"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true
+        },
+        "bin-dir": "bin"
+    },
+    "scripts": {
+        "cs-fix": "bin/php-cs-fixer fix --config=.php-cs-fixer.php --diff --verbose --allow-risky=yes",
+        "cs-check": "bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff --verbose --allow-risky=yes",
+        "phpstan": "phpstan analyse --memory-limit=512M src",
+        "lint": [
+            "@cs-check",
+            "@phpstan"
+        ],
+        "test": "bin/phpunit -c phpunit.xml.dist --do-not-cache-result",
+        "test-debug": "bin/phpunit -c phpunit.xml.dist --debug",
+        "test-all": "scripts/test-all-versions.sh",
+        "check": [
+            "@lint",
+            "@test"
+        ]
+    }
+}

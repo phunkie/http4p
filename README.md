@@ -8,7 +8,7 @@ Http4p provides a purely functional approach to building HTTP servers and client
 
 - **Type-safe routing** - Compile-time route validation
 - **Effect-based handlers** - All HTTP operations as IO effects
-- **Streaming support** - Handle large requests/responses efficiently
+- **Streaming bodies** - Responses use `Stream<F, Byte>` for constant memory usage
 - **Composable middleware** - Build complex pipelines from simple parts
 - **Functional error handling** - No exceptions, just values
 
@@ -20,22 +20,55 @@ composer require phunkie/http4p
 
 ## Requirements
 
-- PHP 8.2 or higher
+- PHP 8.2 || 8.3 || 8.4
 - phunkie/phunkie ^1.0
-- phunkie/effect ^1.0
+- phunkie/effect ^1.2
 - phunkie/streams ^1.0
+
+## Core Concepts
+
+### Response Model
+
+Http4p uses `Response<F>` where the body is a `Stream<F, Byte>`:
+
+```php
+class Response<F> {
+    public Status $status;
+    public Headers $headers;
+    public Stream<F, Byte> $body;  // Streaming body
+}
+```
+
+This design enables:
+- **Constant memory** - Stream large responses without loading into memory
+- **Backpressure** - Handle slow clients gracefully
+- **Cancellation** - Stop processing when client disconnects
+- **Composable effects** - Body production can perform IO operations
+
+### Type Signatures
+
+Route handlers return `IO<Response<IO>>`:
+
+```php
+// Handler signature
+fn(int $id): IO<Response<IO>>
+
+// Response constructors
+Ok<A>(A $value): IO<Response<IO>>           // Encodes value to Stream<IO, Byte>
+Ok(Stream<IO, Byte> $stream): IO<Response<IO>>  // Uses stream directly
+```
 
 ## Quick Start
 
 ```php
 use Phunkie\Http4p\Request;
-use function Phunkie\Http4p\{HttpRoutes, PhpBuiltInServerBuilder};
+use function Phunkie\Http4p\Functions\{HttpRoutes, PhpBuiltInServerBuilder};
 use function Phunkie\Http4p\Response\{Ok, Created};
 
-// Define routes - route parameters are passed as closure arguments
+// Define routes - handlers return IO<Response<IO>>
 $routes = HttpRoutes(
     GET('/users/:id', fn(int $id) =>
-        Ok(['id' => $id])
+        Ok(['id' => $id])  // EntityEncoder converts to Stream<IO, Byte>
     ),
     
     POST('/users', fn(Request $req) =>
@@ -60,7 +93,7 @@ Define routes with pattern matching and type safety. Route parameters are automa
 
 ```php
 use Phunkie\Http4p\Request;
-use function Phunkie\Http4p\HttpRoutes;
+use function Phunkie\Http4p\Functions\HttpRoutes;
 use function Phunkie\Http4p\Response\{Ok, Created, NoContent, NotFound};
 
 $routes = HttpRoutes(
@@ -79,8 +112,8 @@ Use functional response constructors (JSON is the default format):
 ```php
 use function Phunkie\Http4p\Response\{Ok, Created, Accepted, NoContent, BadRequest, NotFound, InternalServerError};
 
-// Success responses - body is passed as argument
-Ok(['status' => 'success']);
+// Success responses - body is encoded to Stream<IO, Byte>
+Ok(['status' => 'success']);              // IO<Response<IO>>
 Created(['id' => 123, 'name' => 'New User']);
 Created($user);  // Pass objects directly
 Accepted('Processing');
@@ -92,43 +125,38 @@ NotFound(['error' => 'Resource not found']);
 InternalServerError('Something went wrong');
 ```
 
-### Middleware Composition
-
-Build middleware pipelines using functional composition:
-
-```php
-use function Phunkie\Http4p\Middleware\{compose, Logger, Auth, CORS, RateLimit};
-
-// Compose middleware functionally
-$middleware = compose(
-    Logger(),
-    Auth(),
-    CORS(['*']),
-    RateLimit(100, 60)
-);
-
-$app = $middleware($routes);
-
-// Alternative: Use combine method
-$middleware = Logger()
-    ->combine(Auth())
-    ->combine(CORS(['*']))
-    ->combine(RateLimit(100, 60));
-
-$app = $middleware($routes);
-```
-
 ### Streaming Responses
 
-Handle large responses efficiently:
+Stream large responses with constant memory usage:
 
 ```php
 use function Phunkie\Http4p\Response\Ok;
+use function Phunkie\Streams\Stream;
 
-// Path() is a global function, no import needed
-GET('/stream', fn() =>
-    Ok(Stream(Path('large-file.json'))
-        ->map(fn($line) => json_decode($line))
+// Stream a large file
+GET('/download/:file', fn(string $file) =>
+    Ok(Stream::fromFile("/data/{$file}.json"))  // Stream<IO, Byte>
+);
+
+// Stream database results
+GET('/users/export', fn() =>
+    Ok(
+        where(User::class, 'active', true)
+            ->stream()                          // Stream<IO, User>
+            ->map(fn($u) => json_encode($u))    // Stream<IO, String>
+            ->intersperse("\n")                 // Add newlines
+            ->through(utf8Encode)               // Stream<IO, Byte>
+    )
+);
+
+// Process and stream with backpressure
+GET('/process/:file', fn(string $file) =>
+    Ok(
+        Stream::fromFile("/input/{$file}.csv")
+            ->through(parseCsv)
+            ->evalMap(fn($row) => processRow($row))  // IO effect per row
+            ->map(fn($result) => json_encode($result))
+            ->through(utf8Encode)
     )
 );
 ```
