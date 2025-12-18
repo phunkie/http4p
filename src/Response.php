@@ -38,11 +38,6 @@ final readonly class Response
         public mixed $body
     ) {}
 
-    public static function of(Status $status, Headers $headers, mixed $body): self
-    {
-        return new self($status, $headers, $body);
-    }
-
     public function withStatus(Status $status): self
     {
         return new self($status, $this->headers, $this->body);
