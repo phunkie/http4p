@@ -26,7 +26,7 @@ final class JsonEncoder implements EntityEncoder
             return $value;
         }
 
-        return json_encode($value, JSON_THROW_ON_ERROR);
+        return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     public function contentType(): string

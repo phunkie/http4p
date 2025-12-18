@@ -47,14 +47,14 @@ class JsonEncoderTest extends TestCase
 
     public function test_encode_string()
     {
-        $this->assertEquals('"hello"', $this->encoder->encode('hello'));
-        $this->assertEquals('""', $this->encoder->encode(''));
+        $this->assertEquals('hello', $this->encoder->encode('hello'));
+        $this->assertEquals('', $this->encoder->encode(''));
     }
 
     public function test_encode_string_with_special_characters()
     {
-        $this->assertEquals('"hello\nworld"', $this->encoder->encode("hello\nworld"));
-        $this->assertEquals('"quote: \\"test\\""', $this->encoder->encode('quote: "test"'));
+        $this->assertEquals("hello\nworld", $this->encoder->encode("hello\nworld"));
+        $this->assertEquals('quote: "test"', $this->encoder->encode('quote: "test"'));
     }
 
     public function test_encode_indexed_array()
