@@ -15,7 +15,6 @@ namespace {
     use Phunkie\Http4p\Route;
     use Phunkie\Types\ImmList;
 
-    use function Phunkie\Functions\immlist\ImmList as ListOf;
     use function Phunkie\Http4p\Functions\routes\wrapHandler;
 
     /**
@@ -86,7 +85,7 @@ namespace {
      */
     function HttpRoutes(Route ...$routes): ImmList
     {
-        return ListOf(...$routes);
+        return ImmList(...$routes);
     }
 }
 
@@ -115,14 +114,21 @@ namespace Phunkie\Http4p\Functions\routes {
                 }
             }
 
-            // If handler expects Request, add it as last argument
+            // If handler expects Request, add it
             $reflection = new \ReflectionFunction($handler);
             $params = $reflection->getParameters();
 
             if (! empty($params)) {
-                $lastParam = end($params);
-                if ($lastParam->getType()?->getName() === Request::class) {
+                // Check if first param is Request (when no path params)
+                $firstParam = $params[0];
+                if (empty($args) && $firstParam->getType()?->getName() === Request::class) {
                     $args[] = $request;
+                } else {
+                    // Check if last param is Request (after path params)
+                    $lastParam = end($params);
+                    if ($lastParam->getType()?->getName() === Request::class) {
+                        $args[] = $request;
+                    }
                 }
             }
 
