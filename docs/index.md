@@ -11,6 +11,7 @@
 - [Response Model](core/response-model.md) - Understanding `Response<F>` and `Stream<F, Byte>`
 - [Type Signatures](core/type-signatures.md) - `IO<Response<IO>>` explained
 - [Entity Encoding](core/entity-encoding.md) - Converting values to streaming bodies
+- [Entity Decoding](core/entity-decoding.md) - Handling request bodies (Not Middleware!)
 - [Streaming](core/streaming.md) - Backpressure, cancellation, and memory efficiency
 
 ### Routing
