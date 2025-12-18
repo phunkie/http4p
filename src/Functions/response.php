@@ -15,11 +15,24 @@ namespace {
     use Phunkie\Http4p\Encoder\JsonEncoder;
     use Phunkie\Http4p\EntityEncoder;
     use Phunkie\Http4p\Headers;
-    use Phunkie\Http4p\Response;
+    use Phunkie\Http4p\Response as ResponseClass;
     use Phunkie\Http4p\Status;
 
     use function Phunkie\Effect\Functions\io\io;
     use function Phunkie\Http4p\Functions\response\createResponse;
+
+    /**
+     * Create a Response.
+     *
+     * @param Status $status
+     * @param Headers|null $headers
+     * @param mixed $body
+     * @return ResponseClass
+     */
+    function Response(Status $status, ?Headers $headers = null, mixed $body = ''): ResponseClass
+    {
+        return new ResponseClass($status, $headers ?? Headers(), $body);
+    }
 
     /**
      * Create a 200 OK response.

@@ -12,7 +12,7 @@
 namespace {
 
     use Phunkie\Http4p\Method;
-    use Phunkie\Http4p\Request;
+    use Phunkie\Http4p\Request as RequestClass;
     use Phunkie\Http4p\Headers;
 
     /**
@@ -22,11 +22,11 @@ namespace {
      * @param string $uri
      * @param Headers|null $headers
      * @param mixed $body
-     * @return Request
+     * @return RequestClass
      */
-    function RequestOf(Method $method, string $uri, ?Headers $headers = null, mixed $body = null): Request
+    function Request(Method $method, string $uri, ?Headers $headers = null, mixed $body = null): RequestClass
     {
-        return new Request($method, $uri, $headers ?? Headers(), $body);
+        return new RequestClass($method, $uri, $headers ?? Headers(), $body);
     }
 }
 

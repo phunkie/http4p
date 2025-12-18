@@ -11,95 +11,107 @@
 
 namespace {
 
-    use Phunkie\Http4p\Status;
+    use Phunkie\Http4p\Status as StatusClass;
+
+    /**
+     * Create a Status.
+     *
+     * @param int $code
+     * @param string $reason
+     * @return StatusClass
+     */
+    function Status(int $code, string $reason): StatusClass
+    {
+        return new StatusClass($code, $reason);
+    }
 
     // 2xx Success
-    function StatusOk(): Status
+    function StatusOk(): StatusClass
     {
-        return new Status(200, 'OK');
+        return new StatusClass(200, 'OK');
     }
 
-    function StatusCreated(): Status
+    function StatusCreated(): StatusClass
     {
-        return new Status(201, 'Created');
+        return new StatusClass(201, 'Created');
     }
 
-    function StatusAccepted(): Status
+    function StatusAccepted(): StatusClass
     {
-        return new Status(202, 'Accepted');
+        return new StatusClass(202, 'Accepted');
     }
 
-    function StatusNoContent(): Status
+    function StatusNoContent(): StatusClass
     {
-        return new Status(204, 'No Content');
+        return new StatusClass(204, 'No Content');
     }
 
     // 3xx Redirection
-    function StatusMovedPermanently(): Status
+    function StatusMovedPermanently(): StatusClass
     {
-        return new Status(301, 'Moved Permanently');
+        return new StatusClass(301, 'Moved Permanently');
     }
 
-    function StatusFound(): Status
+    function StatusFound(): StatusClass
     {
-        return new Status(302, 'Found');
+        return new StatusClass(302, 'Found');
     }
 
-    function StatusSeeOther(): Status
+    function StatusSeeOther(): StatusClass
     {
-        return new Status(303, 'See Other');
+        return new StatusClass(303, 'See Other');
     }
 
-    function StatusNotModified(): Status
+    function StatusNotModified(): StatusClass
     {
-        return new Status(304, 'Not Modified');
+        return new StatusClass(304, 'Not Modified');
     }
 
     // 4xx Client Errors
-    function StatusBadRequest(): Status
+    function StatusBadRequest(): StatusClass
     {
-        return new Status(400, 'Bad Request');
+        return new StatusClass(400, 'Bad Request');
     }
 
-    function StatusUnauthorized(): Status
+    function StatusUnauthorized(): StatusClass
     {
-        return new Status(401, 'Unauthorized');
+        return new StatusClass(401, 'Unauthorized');
     }
 
-    function StatusForbidden(): Status
+    function StatusForbidden(): StatusClass
     {
-        return new Status(403, 'Forbidden');
+        return new StatusClass(403, 'Forbidden');
     }
 
-    function StatusNotFound(): Status
+    function StatusNotFound(): StatusClass
     {
-        return new Status(404, 'Not Found');
+        return new StatusClass(404, 'Not Found');
     }
 
-    function StatusMethodNotAllowed(): Status
+    function StatusMethodNotAllowed(): StatusClass
     {
-        return new Status(405, 'Method Not Allowed');
+        return new StatusClass(405, 'Method Not Allowed');
     }
 
-    function StatusConflict(): Status
+    function StatusConflict(): StatusClass
     {
-        return new Status(409, 'Conflict');
+        return new StatusClass(409, 'Conflict');
     }
 
     // 5xx Server Errors
-    function StatusInternalServerError(): Status
+    function StatusInternalServerError(): StatusClass
     {
-        return new Status(500, 'Internal Server Error');
+        return new StatusClass(500, 'Internal Server Error');
     }
 
-    function StatusNotImplemented(): Status
+    function StatusNotImplemented(): StatusClass
     {
-        return new Status(501, 'Not Implemented');
+        return new StatusClass(501, 'Not Implemented');
     }
 
-    function StatusServiceUnavailable(): Status
+    function StatusServiceUnavailable(): StatusClass
     {
-        return new Status(503, 'Service Unavailable');
+        return new StatusClass(503, 'Service Unavailable');
     }
 }
 
