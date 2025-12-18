@@ -17,7 +17,10 @@ POST('/users', fn(Request $req) =>
         
         if (!$data) return BadRequest("Invalid JSON");
         
-        return Created($data);
+        // Use constructor, not static method!
+        $user = new User($data['name'], $data['email']);
+        
+        return Created($user);
     })
 );
 ```
