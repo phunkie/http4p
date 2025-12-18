@@ -12,13 +12,22 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/phunkie/effect.git"
+            "url": "../effect"
+        },
+        {
+            "type": "vcs",
+            "url": "../phunkie"
+        },
+        {
+            "type": "vcs",
+            "url": "../streams"
         }
     ],
     "require": {
         "php": "^8.2 || ^8.3 || ^8.4",
-        "phunkie/phunkie": "^1.0",
-        "phunkie/effect": "dev-developing-1.2.0"
+        "phunkie/phunkie": "dev-developing-1.1.0",
+        "phunkie/effect": "dev-developing-1.2.0",
+        "phunkie/streams": "dev-developing-1.1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0 || ^11.0",

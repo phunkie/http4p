@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Tests\\Phunkie\\Streams\\' => array($vendorDir . '/phunkie/streams/tests'),
     'Tests\\' => array($baseDir . '/tests'),
     'Symfony\\Polyfill\\Php84\\' => array($vendorDir . '/symfony/polyfill-php84'),
     'Symfony\\Polyfill\\Php81\\' => array($vendorDir . '/symfony/polyfill-php81'),
@@ -34,6 +35,7 @@ return array(
     'Psr\\Log\\' => array($vendorDir . '/psr/log/src'),
     'Psr\\EventDispatcher\\' => array($vendorDir . '/psr/event-dispatcher/src'),
     'Psr\\Container\\' => array($vendorDir . '/psr/container/src'),
+    'Phunkie\\Streams\\' => array($vendorDir . '/phunkie/streams/src'),
     'Phunkie\\PHPStan\\' => array($vendorDir . '/phunkie/phpstan/src'),
     'Phunkie\\Http4p\\' => array($baseDir . '/src'),
     'Phunkie\\Effect\\' => array($vendorDir . '/phunkie/effect/src'),

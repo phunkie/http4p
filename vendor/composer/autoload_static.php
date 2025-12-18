@@ -11,17 +11,18 @@ class ComposerStaticInitfcf658ba3b25935c9e6be8ad3754d94e
         'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
+        'f4dadcc6f0325aa84e3569abad07dee6' => __DIR__ . '/..' . '/phunkie/phunkie/src/Phunkie/Functions/common.php',
         '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
         'b6b991a57620e2fb6b2f66f03fe9ddc2' => __DIR__ . '/..' . '/symfony/string/Resources/functions.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         '9b38cf48e83f5d8f60375221cd213eee' => __DIR__ . '/..' . '/phpstan/phpstan/bootstrap.php',
-        'f4dadcc6f0325aa84e3569abad07dee6' => __DIR__ . '/..' . '/phunkie/phunkie/src/Phunkie/Functions/common.php',
+        '256cf8a8c741d74277ab86b0625409d5' => __DIR__ . '/..' . '/phunkie/effect/src/Functions/common.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '23c18046f52bef3eea034657bafda50f' => __DIR__ . '/..' . '/symfony/polyfill-php81/bootstrap.php',
         '9d2b9fc6db0f153a0a149fefb182415e' => __DIR__ . '/..' . '/symfony/polyfill-php84/bootstrap.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
-        '256cf8a8c741d74277ab86b0625409d5' => __DIR__ . '/..' . '/phunkie/effect/src/Functions/common.php',
+        '6e6457acbfd8957739c8928743119c90' => __DIR__ . '/..' . '/phunkie/streams/src/Functions/common.php',
         'ddffd57c4c2afaac75c4ecec1eea74cb' => __DIR__ . '/../..' . '/src/Functions/status.php',
         '3153064c28d546ad2daa0371b41008d6' => __DIR__ . '/../..' . '/src/Functions/headers.php',
         '9c8be44b5bd9ce1a810809067faa2e0a' => __DIR__ . '/../..' . '/src/Functions/request.php',
@@ -33,6 +34,7 @@ class ComposerStaticInitfcf658ba3b25935c9e6be8ad3754d94e
     public static $prefixLengthsPsr4 = array (
         'T' => 
         array (
+            'Tests\\Phunkie\\Streams\\' => 22,
             'Tests\\' => 6,
         ),
         'S' => 
@@ -70,6 +72,7 @@ class ComposerStaticInitfcf658ba3b25935c9e6be8ad3754d94e
             'Psr\\Log\\' => 8,
             'Psr\\EventDispatcher\\' => 20,
             'Psr\\Container\\' => 14,
+            'Phunkie\\Streams\\' => 16,
             'Phunkie\\PHPStan\\' => 16,
             'Phunkie\\Http4p\\' => 15,
             'Phunkie\\Effect\\' => 15,
@@ -98,6 +101,10 @@ class ComposerStaticInitfcf658ba3b25935c9e6be8ad3754d94e
     );
 
     public static $prefixDirsPsr4 = array (
+        'Tests\\Phunkie\\Streams\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phunkie/streams/tests',
+        ),
         'Tests\\' => 
         array (
             0 => __DIR__ . '/../..' . '/tests',
@@ -209,6 +216,10 @@ class ComposerStaticInitfcf658ba3b25935c9e6be8ad3754d94e
         'Psr\\Container\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
+        ),
+        'Phunkie\\Streams\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phunkie/streams/src',
         ),
         'Phunkie\\PHPStan\\' => 
         array (

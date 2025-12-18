@@ -50,10 +50,6 @@ final readonly class Headers
 
     public function toArray(): array
     {
-        $result = [];
-        foreach ($this->headers->iterator() as $key => $value) {
-            $result[$key] = $value;
-        }
-        return $result;
+        return $this->headers->toArray();
     }
 }

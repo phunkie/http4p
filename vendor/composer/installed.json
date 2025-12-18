@@ -1291,18 +1291,12 @@
             "version_normalized": "dev-developing-1.2.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/phunkie/effect.git",
-                "reference": "b325678a6cdaf9b20c29e08d9fe7157d9a4f45e7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/phunkie/effect/zipball/b325678a6cdaf9b20c29e08d9fe7157d9a4f45e7",
-                "reference": "b325678a6cdaf9b20c29e08d9fe7157d9a4f45e7",
-                "shasum": ""
+                "url": "../effect",
+                "reference": "d49a9de00573e3fbe9d10c2d3478ba5cc18329a7"
             },
             "require": {
                 "php": "^8.2 || ^8.3 || ^8.4",
-                "phunkie/phunkie": "^1.0"
+                "phunkie/phunkie": "dev-developing-1.1.0"
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.90",
@@ -1313,9 +1307,10 @@
             "suggest": {
                 "ext-parallel": "Required for parallel execution using threads. PHP must be compiled with ZTS support."
             },
-            "time": "2025-12-18T13:32:24+00:00",
+            "time": "2025-12-18T14:11:51+00:00",
+            "default-branch": true,
             "type": "library",
-            "installation-source": "dist",
+            "installation-source": "source",
             "autoload": {
                 "psr-4": {
                     "Phunkie\\Effect\\": "src/"
@@ -1364,10 +1359,6 @@
                 }
             ],
             "description": "A functional effects library for PHP inspired by Scala's cats-effect",
-            "support": {
-                "source": "https://github.com/phunkie/effect/tree/developing-1.2.0",
-                "issues": "https://github.com/phunkie/effect/issues"
-            },
             "install-path": "../phunkie/effect"
         },
         {
@@ -1428,18 +1419,12 @@
         },
         {
             "name": "phunkie/phunkie",
-            "version": "1.0.0",
-            "version_normalized": "1.0.0.0",
+            "version": "dev-developing-1.1.0",
+            "version_normalized": "dev-developing-1.1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/phunkie/phunkie.git",
-                "reference": "edfe0c5e3b382d8827bdaef5c0ef027840eceaf5"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/phunkie/phunkie/zipball/edfe0c5e3b382d8827bdaef5c0ef027840eceaf5",
-                "reference": "edfe0c5e3b382d8827bdaef5c0ef027840eceaf5",
-                "shasum": ""
+                "url": "../phunkie",
+                "reference": "b458823223531a977ed72489e74105fd4282af77"
             },
             "require": {
                 "php": "^8.2 || ^8.3 || ^8.4"
@@ -1452,20 +1437,55 @@
                 "phpunit/phpunit": "^9",
                 "phunkie/phpstan": "@dev"
             },
-            "time": "2025-12-08T18:48:37+00:00",
+            "time": "2025-12-18T14:09:31+00:00",
+            "default-branch": true,
             "type": "library",
-            "installation-source": "dist",
+            "installation-source": "source",
             "autoload": {
-                "files": [
-                    "src/Phunkie/Functions/common.php"
-                ],
                 "psr-0": {
                     "": [
                         "src/"
                     ]
+                },
+                "files": [
+                    "src/Phunkie/Functions/common.php"
+                ]
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "\\spec\\": [
+                        "spec/"
+                    ]
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "cs-fix": [
+                    "bin/php-cs-fixer fix --config=.php-cs-fixer.php --diff --verbose --allow-risky=yes"
+                ],
+                "cs-check": [
+                    "bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff --verbose --allow-risky=yes"
+                ],
+                "phpstan": [
+                    "phpstan analyse --memory-limit=512M src"
+                ],
+                "lint": [
+                    "@cs-check",
+                    "@phpstan"
+                ],
+                "test": [
+                    "bin/phpunit -c phpunit.xml.dist --do-not-cache-result"
+                ],
+                "test-debug": [
+                    "bin/phpunit -c phpunit.xml.dist --debug"
+                ],
+                "test-all": [
+                    "scripts/test-all-versions.sh"
+                ],
+                "check": [
+                    "@lint",
+                    "@test"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -1476,11 +1496,86 @@
                 }
             ],
             "description": "Functional structures library for PHP",
-            "support": {
-                "issues": "https://github.com/phunkie/phunkie/issues",
-                "source": "https://github.com/phunkie/phunkie/tree/1.0.0"
-            },
             "install-path": "../phunkie/phunkie"
+        },
+        {
+            "name": "phunkie/streams",
+            "version": "dev-developing-1.1.0",
+            "version_normalized": "dev-developing-1.1.0",
+            "source": {
+                "type": "git",
+                "url": "../streams",
+                "reference": "c048bdbddb2121858c8bf26f8973a00d3e098f21"
+            },
+            "require": {
+                "php": "^8.2 || ^8.3 || ^8.4",
+                "phunkie/effect": "dev-developing-1.2.0",
+                "phunkie/phunkie": "dev-developing-1.1.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.90",
+                "pestphp/pest": "^2.35",
+                "phpstan/phpstan": "^2.0",
+                "phunkie/phpstan": "^1.0"
+            },
+            "suggest": {
+                "ext-json": "Required for JSON encoding and decoding",
+                "ext-mbstring": "Required for encoding and decoding text in various encodings",
+                "ext-parallel": "Required for parallel processing capabilities",
+                "ext-pcntl": "Required for process control in Unix-like operating systems",
+                "ext-posix": "Required for POSIX functions, useful for multi-threading and process control",
+                "ext-sockets": "Required for socket communication in networking applications",
+                "ext-zlib": "Required for stream compression and decompression"
+            },
+            "time": "2025-12-18T14:13:27+00:00",
+            "default-branch": true,
+            "type": "library",
+            "installation-source": "source",
+            "autoload": {
+                "psr-4": {
+                    "Phunkie\\Streams\\": "src/",
+                    "Tests\\Phunkie\\Streams\\": "tests/"
+                },
+                "files": [
+                    "src/Functions/common.php"
+                ]
+            },
+            "scripts": {
+                "test": [
+                    "pest"
+                ],
+                "phpstan": [
+                    "phpstan analyse --memory-limit=512M"
+                ],
+                "cs-fix": [
+                    "php-cs-fixer fix --allow-risky=yes"
+                ],
+                "cs-check": [
+                    "php-cs-fixer fix --dry-run --diff --allow-risky=yes"
+                ],
+                "lint": [
+                    "@cs-check",
+                    "@phpstan"
+                ],
+                "test-all": [
+                    "scripts/test-all-versions.sh"
+                ],
+                "check": [
+                    "@lint",
+                    "@test"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Marcello Duarte",
+                    "email": "marcello.duarte@gmail.com"
+                }
+            ],
+            "description": "Functional Streams for PHP",
+            "install-path": "../phunkie/streams"
         },
         {
             "name": "psr/container",
