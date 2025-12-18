@@ -17,11 +17,11 @@ $routes = HttpRoutes(
 );
 
 (new PhpServer($routes))
-    ->run()
+    ->run(8000)
     ->unsafeRun();
 ```
 
-Run with built-in server:
+Run the server:
 ```bash
-php -S localhost:8000
+php index.php
 ```

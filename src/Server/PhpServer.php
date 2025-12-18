@@ -103,8 +103,18 @@ final class PhpServer
      *
      * @return IO<int>
      */
-    public function run(): IO
+    public function run(int $port = 8000): IO
     {
+        if (php_sapi_name() === 'cli') {
+            return io(function () use ($port) {
+                echo "Starting server at http://localhost:$port\n";
+                echo "Press Ctrl+C to stop.\n";
+                $script = $_SERVER['SCRIPT_FILENAME'];
+                passthru("php -S localhost:$port $script");
+                return 0;
+            });
+        }
+
         return $this->handleRequest()
             ->flatMap(fn ($response) => $this->sendResponse($response));
     }
