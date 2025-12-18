@@ -21,7 +21,7 @@ namespace {
      */
     function Headers(array $headers = []): HeadersClass
     {
-        return new HeadersClass(ImmMap($headers));
+        return new HeadersClass(ImmMap(array_change_key_case($headers, CASE_LOWER)));
     }
 }
 

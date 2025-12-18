@@ -45,7 +45,8 @@
             "src/Functions/request.php",
             "src/Functions/routes.php",
             "src/Functions/response.php",
-            "src/Functions/client.php"
+            "src/Functions/client.php",
+            "src/Functions/file.php"
         ]
     },
     "autoload-dev": {

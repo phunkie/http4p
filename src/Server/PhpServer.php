@@ -17,6 +17,7 @@ use Phunkie\Http4p\Method;
 use Phunkie\Http4p\Request;
 use Phunkie\Http4p\Response;
 use Phunkie\Http4p\Router;
+use Phunkie\Streams\IO\File\Path;
 use Phunkie\Types\ImmList;
 
 use function Phunkie\Effect\Functions\io\io;
@@ -63,15 +64,10 @@ final class PhpServer
                 }
             }
 
-            // Get body
-            $body = file_get_contents('php://input');
-            if ($body && str_contains($headers['content-type'] ?? '', 'application/json')) {
-                $body = json_decode($body, true);
-            }
+            // Get body as Stream
+             $body = \Stream(new Path('php://input'));
 
-            $request = new Request($method, $uri, Headers($headers), $body);
-
-            return $request;
+            return new Request($method, $uri, Headers($headers), $body);
         })->flatMap(fn ($request) => $this->router->route($request))
             ->handleError(fn ($e) => InternalServerError([
                 'error' => 'Internal Server Error',
@@ -94,12 +90,12 @@ final class PhpServer
             foreach ($response->headers->toArray() as $name => $value) {
                 header("$name: $value");
             }
-
-            // Send body
-            echo $response->body;
-
-            return 0;
-        });
+        })->flatMap(fn() => 
+            $response->body
+                ->evalTap(fn($chunk) => io(function () use ($chunk) { echo $chunk; }))
+                ->compile()
+                ->drain()
+        )->map(fn() => 0);
     }
 
     /**

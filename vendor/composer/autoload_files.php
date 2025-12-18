@@ -28,4 +28,5 @@ return array(
     '502dd52428f72045ad6a901a4cbfa537' => $baseDir . '/src/Functions/routes.php',
     'd1a7fd0755859f7dbfc4e881b8c05d30' => $baseDir . '/src/Functions/response.php',
     '13ba2c548abd1b0a382ce2f73e362d49' => $baseDir . '/src/Functions/client.php',
+    '7fa0f6edae3615b2f7c3004231e6774d' => $baseDir . '/src/Functions/file.php',
 );
