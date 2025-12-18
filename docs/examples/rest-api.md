@@ -34,7 +34,7 @@ $routes = HttpRoutes(
 
 // 2. Run Server
 (new PhpServer($routes))
-    ->run()
+    ->run(8000)
     ->unsafeRun();
 ```
 
