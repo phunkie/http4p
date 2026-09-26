@@ -24,14 +24,18 @@ namespace Phunkie\Http4p\Functions {
      *
      * The IO fails with a DecodeFailure when the body cannot be decoded; the router turns that into a 400.
      *
+     * When decoding into an entity, the request's path parameters and $known fill the constructor
+     * parameters of the same name ahead of the body, so a route can supply what the client must not.
+     *
      * @param class-string|callable(string): mixed|null $decoder
+     * @param array<string, mixed> $known values keyed by constructor parameter name
      * @return IO<mixed>
      */
-    function decode(Request $request, string|callable|null $decoder = null): IO
+    function decode(Request $request, string|callable|null $decoder = null, array $known = []): IO
     {
         $decoder = match (true) {
             null === $decoder => json(),
-            is_string($decoder) => new EntityDecoder($decoder, $request->method),
+            is_string($decoder) => new EntityDecoder($decoder, $request->method, $known + $request->pathParams),
             default => $decoder,
         };
 

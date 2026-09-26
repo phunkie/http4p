@@ -73,4 +73,15 @@ class RequestTest extends TestCase
         $this->assertEquals([''], $original->body->toArray());
         $this->assertEquals([['foo' => 'bar']], $modified->body->toArray());
     }
+
+    public function test_query_parameters_are_read_from_the_uri()
+    {
+        $request = Request(Method::GET, '/books?tag=maths&page=2');
+
+        $this->assertSame('maths', $request->query('tag'));
+        $this->assertSame('2', $request->query('page'));
+        $this->assertNull($request->query('sort'));
+        $this->assertSame(['tag' => 'maths', 'page' => '2'], $request->queryParams());
+        $this->assertSame([], Request(Method::GET, '/books')->queryParams());
+    }
 }

@@ -11,6 +11,11 @@
 
 namespace Phunkie\Http4p\Decoder;
 
+use BackedEnum;
+use DateTimeImmutable;
+use DateTimeInterface;
+use Exception;
+use InvalidArgumentException;
 use Phunkie\Http4p\DecodeFailure;
 use Phunkie\Http4p\Method;
 use ReflectionClass;
@@ -25,9 +30,14 @@ use function Phunkie\Http4p\Functions\decoding\json;
  * Decodes a JSON object into the fields of an entity, keyed by constructor parameter name.
  *
  * A key matches a parameter by its exact name or by its snake_case form. Unknown keys and
- * parameters marked #[Generated] are dropped. On POST and PUT every parameter without a default
- * that is not nullable is required; a PATCH may carry any subset, as long as one field is known.
- * Values must match the declared parameter types as JSON gives them, with no coercion.
+ * parameters marked #[Generated] are dropped. Values the route already knows, the request's path
+ * parameters and anything the caller provides, fill the parameter of the same name ahead of the body.
+ * On POST and PUT every parameter without a default that is not nullable is required; a PATCH may
+ * carry any subset, as long as one field is known.
+ *
+ * Scalars must match the declared type as JSON gives them, with no coercion. A parameter typed with
+ * a backed enum, a date or any class with a single-argument constructor is built from the scalar,
+ * and an InvalidArgumentException thrown by that constructor becomes the field's error.
  */
 final class EntityDecoder
 {
@@ -35,10 +45,12 @@ final class EntityDecoder
 
     /**
      * @param class-string $class
+     * @param array<string, mixed> $known values the route already has, keyed by parameter name
      */
     public function __construct(
         private string $class,
         private Method $method,
+        private array $known = [],
     ) {
     }
 
@@ -68,23 +80,27 @@ final class EntityDecoder
                 continue;
             }
 
+            $name = $param->getName();
+            if (array_key_exists($name, $this->known)) {
+                $fields[$name] = $this->known[$name];
+
+                continue;
+            }
+
             $key = $this->keyFor($param, $json);
             if (null === $key) {
                 if ($this->isRequired($param)) {
-                    $errors[$param->getName()] = 'missing';
+                    $errors[$name] = 'missing';
                 }
 
                 continue;
             }
 
-            $mismatch = $this->typeMismatch($param, $json[$key]);
-            if (null !== $mismatch) {
-                $errors[$param->getName()] = $mismatch;
-
-                continue;
+            try {
+                $fields[$name] = $this->valueFor($param, $json[$key]);
+            } catch (InvalidArgumentException $e) {
+                $errors[$name] = $e->getMessage();
             }
-
-            $fields[$param->getName()] = $json[$key];
         }
 
         if ([] !== $errors) {
@@ -134,25 +150,62 @@ final class EntityDecoder
         return null;
     }
 
-    private function typeMismatch(ReflectionParameter $param, mixed $value): ?string
+    /**
+     * The value to hand to the parameter, or an InvalidArgumentException saying why the JSON value will not do.
+     */
+    private function valueFor(ReflectionParameter $param, mixed $value): mixed
     {
         $type = $param->getType();
         if (null === $type) {
-            return null;
+            return $value;
         }
 
         if (null === $value) {
-            return $type->allowsNull() ? null : sprintf('expected %s, got null', $type);
+            if ($type->allowsNull()) {
+                return null;
+            }
+
+            throw new InvalidArgumentException(sprintf('expected %s, got null', $type));
         }
 
         $names = $this->typeNames($type);
         foreach ($names as $name) {
             if ($this->accepts($name, $value)) {
-                return null;
+                return $value;
             }
         }
 
-        return sprintf('expected %s, got %s', implode('|', $names), get_debug_type($value));
+        foreach ($names as $name) {
+            if (is_scalar($value) && class_exists($name)) {
+                return $this->construct($name, $value);
+            }
+        }
+
+        throw new InvalidArgumentException(sprintf('expected %s, got %s', implode('|', $names), get_debug_type($value)));
+    }
+
+    /**
+     * @param class-string $class
+     */
+    private function construct(string $class, int|float|string|bool $value): object
+    {
+        if (is_subclass_of($class, BackedEnum::class)) {
+            return $class::tryFrom($value) ?? throw new InvalidArgumentException(sprintf(
+                'expected one of %s, got %s',
+                implode(', ', array_map(fn (BackedEnum $case) => $case->value, $class::cases())),
+                json_encode($value),
+            ));
+        }
+
+        if (is_a($class, DateTimeInterface::class, true)) {
+            try {
+                return new ($class === DateTimeInterface::class ? DateTimeImmutable::class : $class)((string) $value);
+            } catch (Exception) {
+                throw new InvalidArgumentException(sprintf('expected a date, got %s', json_encode($value)));
+            }
+        }
+
+        return new $class($value);
     }
 
     /**

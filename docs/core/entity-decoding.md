@@ -20,8 +20,22 @@ POST('/authors', fn(Request $req) =>
 
 - A key matches a parameter by its exact name or by its snake_case form, so `published_year` fills `$publishedYear`.
 - Parameters marked `#[Generated]` (the attribute from phunkie/phetch, read by name so http4p does not depend on it) are never expected and are dropped if sent; so are unknown keys.
+- Values the route already knows fill the parameter of the same name ahead of the body and are never required from it: the request's path parameters, so `POST /authors/:authorId/books` fills `$authorId`, and anything passed as the third argument, `decode($req, Book::class, ['ownerId' => $user->id])`.
 - On `POST` and `PUT` every parameter without a default that is not nullable is required. A `PATCH` may carry any subset, as long as one field is known.
-- Values must match the declared types as JSON provides them: no coercion, so `"1843"` is not an `int`. Nested entities are accepted as JSON objects.
+- Scalars must match the declared types as JSON provides them: no coercion, so `"1843"` is not an `int`. Nested entities are accepted as JSON objects.
+- A parameter typed with a backed enum is built with `tryFrom`, one typed with a date class from the string, and one typed with any other class from the scalar through its constructor. An `InvalidArgumentException` thrown by that constructor becomes the field's error, so a value object such as `Isbn` or `Email` carries its own validation:
+
+```php
+final readonly class Isbn
+{
+    public function __construct(public string $value)
+    {
+        if (!preg_match('/^\d{13}$/', $value)) {
+            throw new InvalidArgumentException('must be 13 digits');
+        }
+    }
+}
+```
 
 A body that does not fit fails with a `DecodeFailure` carrying one message per field, and the router answers with a `400`:
 

@@ -35,6 +35,28 @@ final readonly class Request
         public array $pathParams = []
     ) {}
 
+    /**
+     * The value of one query string parameter, or null when absent.
+     */
+    public function query(string $name): ?string
+    {
+        $value = $this->queryParams()[$name] ?? null;
+
+        return is_string($value) ? $value : null;
+    }
+
+    /**
+     * The query string parsed into an array, empty when there is none.
+     *
+     * @return array<string, mixed>
+     */
+    public function queryParams(): array
+    {
+        parse_str((string) parse_url($this->uri, PHP_URL_QUERY), $params);
+
+        return $params;
+    }
+
     public function withPathParams(array $params): self
     {
         return new self($this->method, $this->uri, $this->headers, $this->body, $params);
