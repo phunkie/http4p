@@ -4,24 +4,34 @@ Entity Decoding is the process of transforming the HTTP Request body stream into
 
 Unlike [Middleware](../middleware/basics.md), which handles cross-cutting concerns, decoding is typically specific to the domain logic of a particular route.
 
-## Using the `decode` helper
+## Decoding into an entity
 
-`decode($request)` reads the body and decodes it as JSON. When the body is not valid JSON the effect fails with a `DecodeFailure`, and the router answers with a `400` whose JSON body carries the message, so a handler never sees a malformed body:
+`decode($request, Author::class)` validates the JSON body against the entity's constructor and yields its fields, keyed by constructor parameter name, ready for the persistence layer:
 
 ```php
 use function Phunkie\Http4p\Functions\decode;
-use function Phunkie\Http4p\Functions\decoding\jsonObject;
 
-POST('/users', fn(Request $req) =>
-    decode($req, jsonObject('name', 'email'))->flatMap(fn(array $data) => Created(new User($data['name'], $data['email'])))
+POST('/authors', fn(Request $req) =>
+    decode($req, Author::class)
+        ->flatMap(fn(array $data) => create(Author::class, $data)->run($conn))
+        ->flatMap(fn(Author $author) => Created($author))
 );
 ```
 
-`jsonObject(...$fields)` decodes a JSON object and keeps only the named fields, failing with a `DecodeFailure` when the body is not an object or none of the fields is present. Called without fields it keeps the whole object. `json()` is the default decoder and accepts any JSON value.
+- A key matches a parameter by its exact name or by its snake_case form, so `published_year` fills `$publishedYear`.
+- Parameters marked `#[Generated]` (the attribute from phunkie/phetch, read by name so http4p does not depend on it) are never expected and are dropped if sent; so are unknown keys.
+- On `POST` and `PUT` every parameter without a default that is not nullable is required. A `PATCH` may carry any subset, as long as one field is known.
+- Values must match the declared types as JSON provides them: no coercion, so `"1843"` is not an `int`. Nested entities are accepted as JSON objects.
 
-## Custom decoders
+A body that does not fit fails with a `DecodeFailure` carrying one message per field, and the router answers with a `400`:
 
-The second argument is any `callable(string): mixed`. Throw `DecodeFailure` from it to get the same `400` treatment:
+```json
+{"error": "Body does not describe Author.", "errors": {"email": "missing", "publishedYear": "expected int, got string"}}
+```
+
+## Raw JSON and custom decoders
+
+`decode($request)` alone gives the raw decoded JSON. Any `callable(string): mixed` works as a decoder; throw `DecodeFailure` from it to get the same `400` treatment:
 
 ```php
 use Phunkie\Http4p\DecodeFailure;

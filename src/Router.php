@@ -64,7 +64,7 @@ final class Router
         return Response(
             StatusBadRequest(),
             Headers(['content-type' => 'application/json']),
-            (new JsonEncoder())->encode(['error' => $failure->getMessage()]),
+            (new JsonEncoder())->encode(['error' => $failure->getMessage()] + ([] === $failure->errors() ? [] : ['errors' => $failure->errors()])),
         );
     }
 }

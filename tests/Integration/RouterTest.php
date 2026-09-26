@@ -125,12 +125,12 @@ class RouterTest extends TestCase
     public function test_router_answers_a_decode_failure_with_400()
     {
         $router = new Router(HttpRoutes(
-            POST('/users', fn(Request $request) => io(fn() => throw new DecodeFailure('Body is not JSON.')))
+            POST('/users', fn(Request $request) => io(fn() => throw new DecodeFailure('Body does not describe a User.', ['email' => 'missing'])))
         ));
 
-        $response = $router->route(Request(Method::POST, '/users', null, 'nope'))->unsafeRun();
+        $response = $router->route(Request(Method::POST, '/users', null, '{}'))->unsafeRun();
 
         $this->assertEquals(400, $response->status->code);
-        $this->assertEquals('{"error":"Body is not JSON."}', implode('', $response->body->toArray()));
+        $this->assertEquals('{"error":"Body does not describe a User.","errors":{"email":"missing"}}', implode('', $response->body->toArray()));
     }
 }
