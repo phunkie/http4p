@@ -176,4 +176,28 @@ class JsonEncoderTest extends TestCase
         // PHP will treat these as an indexed array
         $this->assertIsArray($decoded);
     }
+
+    public function testEncodesDatesAsIso8601WhereverTheyAppear(): void
+    {
+        $at = new \DateTimeImmutable('2020-01-02 03:04:05', new \DateTimeZone('UTC'));
+        $entity = new class($at) {
+            public function __construct(public \DateTimeImmutable $createdAt) {}
+        };
+
+        $this->assertSame('{"at":"2020-01-02T03:04:05+00:00","rows":[{"createdAt":"2020-01-02T03:04:05+00:00"}]}', (new JsonEncoder())->encode(['at' => $at, 'rows' => [$entity]]));
+    }
+
+    public function testEncodesBackedEnumsByValueWhereverTheyAppear(): void
+    {
+        $entity = new class(Suit::Hearts) {
+            public function __construct(public Suit $suit) {}
+        };
+
+        $this->assertSame('{"suit":"hearts","rows":[{"suit":"hearts"}]}', (new JsonEncoder())->encode(['suit' => Suit::Hearts, 'rows' => [$entity]]));
+    }
+}
+
+enum Suit: string
+{
+    case Hearts = 'hearts';
 }
