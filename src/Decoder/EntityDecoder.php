@@ -96,6 +96,17 @@ final class EntityDecoder
                 continue;
             }
 
+            $elementType = $this->elementTypeOf($param);
+            if (null !== $elementType && is_array($json[$key])) {
+                [$elements, $elementErrors] = $this->elements($elementType, $name, $json[$key]);
+                $errors += $elementErrors;
+                if ([] === $elementErrors) {
+                    $fields[$name] = $elements;
+                }
+
+                continue;
+            }
+
             try {
                 $fields[$name] = $this->valueFor($param, $json[$key]);
             } catch (InvalidArgumentException $e) {
@@ -185,6 +196,70 @@ final class EntityDecoder
     }
 
     /**
+     * Every element of a list parameter built from the element type its docblock declares, with one error per bad element.
+     *
+     * @param array<mixed> $list
+     * @return array{0: list<mixed>, 1: array<string, string>}
+     */
+    private function elements(string $type, string $name, array $list): array
+    {
+        if (! array_is_list($list)) {
+            return [[], [$name => 'expected a list']];
+        }
+
+        $elements = [];
+        $errors = [];
+        foreach ($list as $index => $value) {
+            try {
+                $elements[] = $this->element($type, $value);
+            } catch (InvalidArgumentException $e) {
+                $errors[$name.'.'.$index] = $e->getMessage();
+            }
+        }
+
+        return [$elements, $errors];
+    }
+
+    private function element(string $type, mixed $value): mixed
+    {
+        if ($this->accepts($type, $value)) {
+            return $value;
+        }
+
+        if (is_scalar($value) && class_exists($type)) {
+            return $this->construct($type, $value);
+        }
+
+        throw new InvalidArgumentException(sprintf('expected %s, got %s', $type, get_debug_type($value)));
+    }
+
+    /**
+     * The element type of an array parameter, read from "@param list<T> $name", "array<T>" or "T[]" in the constructor docblock.
+     */
+    private function elementTypeOf(ReflectionParameter $param): ?string
+    {
+        $type = $param->getType();
+        if (! $type instanceof ReflectionNamedType || ! in_array($type->getName(), ['array', 'iterable'], true)) {
+            return null;
+        }
+
+        $doc = $param->getDeclaringFunction()->getDocComment();
+        if (false === $doc) {
+            return null;
+        }
+
+        $name = preg_quote($param->getName(), '/');
+        if (! preg_match('/@param\s+(?:(?:list|array)<([^>]+)>|([\w\\\\]+)\[\])\s+\$'.$name.'\b/', $doc, $match)) {
+            return null;
+        }
+
+        $element = ltrim('' !== $match[1] ? $match[1] : $match[2], '\\');
+        $namespaced = $param->getDeclaringClass()?->getNamespaceName().'\\'.$element;
+
+        return class_exists($element) || ! class_exists($namespaced) ? $element : $namespaced;
+    }
+
+    /**
      * @param class-string $class
      */
     private function construct(string $class, int|float|string|bool $value): object
@@ -203,6 +278,11 @@ final class EntityDecoder
             } catch (Exception) {
                 throw new InvalidArgumentException(sprintf('expected a date, got %s', json_encode($value)));
             }
+        }
+
+        $expected = (new ReflectionClass($class))->getConstructor()?->getParameters()[0]?->getType();
+        if ($expected instanceof ReflectionNamedType && $expected->isBuiltin() && ! $this->accepts($expected->getName(), $value)) {
+            throw new InvalidArgumentException(sprintf('expected %s, got %s', $expected->getName(), get_debug_type($value)));
         }
 
         return new $class($value);

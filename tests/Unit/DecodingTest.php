@@ -50,6 +50,29 @@ final readonly class Edition
     }
 }
 
+final readonly class TagName
+{
+    public function __construct(public string $value)
+    {
+        if ('' === trim($value)) {
+            throw new InvalidArgumentException('must not be blank');
+        }
+    }
+}
+
+final readonly class BookTags
+{
+    /**
+     * @param list<TagName> $tags
+     * @param list<int> $ranks
+     */
+    public function __construct(
+        public array $tags,
+        public array $ranks = [],
+    ) {
+    }
+}
+
 final readonly class Book
 {
     public function __construct(
@@ -204,5 +227,38 @@ final class DecodingTest extends TestCase
                 'publishedOn' => 'expected a date, got "never"',
             ], $failure->errors());
         }
+    }
+
+    public function testListElementsAreBuiltFromTheDocumentedElementType(): void
+    {
+        $request = Request(Method::PUT, '/books/1/tags', null, '{"tags":["maths","computing"],"ranks":[1,2]}');
+
+        $this->assertEquals(
+            ['tags' => [new TagName('maths'), new TagName('computing')], 'ranks' => [1, 2]],
+            decode($request, BookTags::class)->unsafeRun()
+        );
+    }
+
+    public function testListElementsAreValidatedOneByOne(): void
+    {
+        $request = Request(Method::PUT, '/books/1/tags', null, '{"tags":["maths"," ",7],"ranks":["first"]}');
+
+        try {
+            decode($request, BookTags::class)->unsafeRun();
+            $this->fail('Expected a DecodeFailure.');
+        } catch (DecodeFailure $failure) {
+            $this->assertSame([
+                'tags.1' => 'must not be blank',
+                'tags.2' => 'expected string, got int',
+                'ranks.0' => 'expected int, got string',
+            ], $failure->errors());
+        }
+    }
+
+    public function testAListParameterRejectsAnObject(): void
+    {
+        $this->expectException(DecodeFailure::class);
+
+        decode(Request(Method::PUT, '/books/1/tags', null, '{"tags":{"a":"maths"}}'), BookTags::class)->unsafeRun();
     }
 }

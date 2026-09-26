@@ -37,6 +37,8 @@ final readonly class Isbn
 }
 ```
 
+- A parameter typed `array` whose constructor docblock says `@param list<TagName> $tags` (or `array<int>`, or `string[]`) must be a JSON list, and every element is checked or built like a scalar parameter would be; errors are keyed `tags.1`.
+
 A body that does not fit fails with a `DecodeFailure` carrying one message per field, and the router answers with a `400`:
 
 ```json
@@ -53,4 +55,14 @@ use Phunkie\Http4p\DecodeFailure;
 $csv = fn(string $body) => '' === $body ? throw new DecodeFailure('Body is empty.') : str_getcsv($body);
 
 POST('/import', fn(Request $req) => decode($req, $csv)->flatMap(fn(array $row) => Ok($row)));
+```
+
+## Responding with what was decoded
+
+The response constructors take the body as their first argument, so a handler can pass them as first-class callables instead of writing a closure:
+
+```php
+decode($req, Author::class)
+    ->flatMap(fn(array $data) => create(Author::class, $data)->run($conn))
+    ->flatMap(Created(...));
 ```
