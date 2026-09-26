@@ -43,11 +43,11 @@ final class ModernizeTypesCastingFixer extends AbstractFunctionReferenceFixer
                             $a = strval ($b);
                             $a = boolval($b);
 
-                        PHP
+                        PHP,
                 ),
             ],
             null,
-            'Risky if any of the functions `intval`, `floatval`, `doubleval`, `strval` or `boolval` are overridden.'
+            'Risky if any of the functions `intval`, `floatval`, `doubleval`, `strval` or `boolval` are overridden.',
         );
     }
 
@@ -74,7 +74,7 @@ final class ModernizeTypesCastingFixer extends AbstractFunctionReferenceFixer
         ] as $functionIdentity => $newToken) {
             $currIndex = 0;
 
-            do {
+            while (true) {
                 // try getting function reference and translate boundaries for humans
                 $boundaries = $this->find($functionIdentity, $tokens, $currIndex, $tokens->count() - 1);
 
@@ -159,7 +159,7 @@ final class ModernizeTypesCastingFixer extends AbstractFunctionReferenceFixer
 
                 // nested transformations support
                 $currIndex = $functionName;
-            } while (null !== $currIndex);
+            }
         }
     }
 }

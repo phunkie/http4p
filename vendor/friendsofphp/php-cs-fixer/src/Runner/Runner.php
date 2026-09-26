@@ -97,6 +97,11 @@ final class Runner
     private int $fileCount;
 
     /**
+     * @var array<string, int> key is process identifier, value is memory usage in bytes
+     */
+    private array $workersMemoryUsageByProcess = [];
+
+    /**
      * @var list<FixerInterface>
      */
     private array $fixers;
@@ -149,7 +154,7 @@ final class Runner
 
                 return $carry;
             },
-            []
+            [],
         );
         $this->differ = $differ;
         $this->eventDispatcher = $eventDispatcher;
@@ -159,21 +164,30 @@ final class Runner
         $this->cacheManager = $cacheManager;
         $this->directory = $directory ?? new Directory('');
         $this->stopOnViolation = $stopOnViolation;
-        $this->parallelConfig = $parallelConfig ?? ParallelConfigFactory::sequential();
+        $this->parallelConfig = $parallelConfig ?? ParallelConfigFactory::detect();
         $this->input = $input;
         $this->configFile = $configFile;
         $this->ruleCustomisationPolicy = $ruleCustomisationPolicy ?? new NullRuleCustomisationPolicy();
     }
 
     /**
-     * @TODO consider to drop this method and make iterator parameter obligatory in constructor,
-     * more in https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/pull/7777/files#r1590447581
-     *
+     * Total workers memory. 0 if not run in parallel mode.
+     */
+    public function getWorkersMemoryUsage(): int
+    {
+        return array_sum($this->workersMemoryUsageByProcess);
+    }
+
+    /**
      * @param \Traversable<array-key, \SplFileInfo> $fileIterator
+     *
+     * @TODO v4: mark internal
+     * @TODO consider to drop this method and make iterator parameter obligatory in constructor,
+     *       more in https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/pull/7777/files#r1590447581
      */
     public function setFileIterator(iterable $fileIterator): void
     {
-        $this->fileIterator = $fileIterator;
+        $this->fileIterator = $fileIterator instanceof \Traversable ? $fileIterator : new \ArrayIterator($fileIterator);
 
         // Required only for main process (calculating workers count)
         $this->fileCount = \count(iterator_to_array($fileIterator));
@@ -196,7 +210,7 @@ final class Runner
                 %s
 
                 Please check your configuration to ensure that these rules are included, or update your Rule Customisation Policy if they have been replaced by other rules in the version of PHP CS Fixer you are using.
-                EOT
+                EOT,
         );
 
         // @TODO 4.0: Remove condition and its body, as no longer needed when param will be required in the constructor.
@@ -251,7 +265,7 @@ final class Runner
 
                 return '- '.$name.$extra;
             },
-            $missingRuleNames
+            $missingRuleNames,
         ));
 
         throw new \RuntimeException(
@@ -276,11 +290,16 @@ final class Runner
         if (!is_numeric($serverPort)) {
             throw new ParallelisationException(\sprintf(
                 'Unable to parse server port from "%s"',
-                $server->getAddress() ?? ''
+                $server->getAddress() ?? '',
             ));
         }
 
-        $processPool = new ProcessPool($server);
+        $processPool = new ProcessPool(
+            $server,
+            static function () use ($streamSelectLoop): void {
+                $streamSelectLoop->stop();
+            },
+        );
         $maxFilesPerProcess = $this->parallelConfig->getFilesPerProcess();
         $fileIterator = $this->getFilteringFileIterator();
         $fileIterator->rewind();
@@ -310,15 +329,21 @@ final class Runner
                 true,
                 512,
                 \JSON_INVALID_UTF8_IGNORE,
-                self::PARALLEL_BUFFER_SIZE
+                self::PARALLEL_BUFFER_SIZE,
             );
             $encoder = new Encoder($connection, \JSON_INVALID_UTF8_IGNORE);
 
             // [REACT] Bind connection when worker's process requests "hello" action (enables 2-way communication)
             $decoder->on('data', static function (array $data) use ($processPool, $getFileChunk, $decoder, $encoder): void {
+                \assert(isset($data['action']));
+
                 if (ParallelAction::WORKER_HELLO !== $data['action']) {
                     return;
                 }
+
+                \assert(isset(
+                    $data['identifier'],
+                ));
 
                 $identifier = ProcessIdentifier::fromRaw($data['identifier']);
 
@@ -334,10 +359,12 @@ final class Runner
                 $fileChunk = $getFileChunk();
 
                 if (0 === \count($fileChunk)) {
+                    // @codeCoverageIgnoreStart
                     $process->request(['action' => ParallelAction::RUNNER_THANK_YOU]);
                     $processPool->endProcessIfKnown($identifier);
 
                     return;
+                    // @codeCoverageIgnoreEnd
                 }
 
                 $process->request(['action' => ParallelAction::RUNNER_REQUEST_ANALYSIS, 'files' => $fileChunk]);
@@ -349,7 +376,7 @@ final class Runner
             max(
                 1,
                 (int) ceil($this->fileCount / $this->parallelConfig->getFilesPerProcess()),
-            )
+            ),
         );
         $processFactory = new ProcessFactory();
 
@@ -362,7 +389,7 @@ final class Runner
                     $this->isDryRun,
                     $this->stopOnViolation,
                     $this->parallelConfig,
-                    $this->configFile
+                    $this->configFile,
                 ),
                 $identifier,
                 $serverPort,
@@ -371,8 +398,19 @@ final class Runner
             $process->start(
                 // [REACT] Handle workers' responses (multiple actions possible)
                 function (array $workerResponse) use ($processPool, $process, $identifier, $getFileChunk, &$changed): void {
+                    \assert(isset($workerResponse['action']));
+
                     // File analysis result (we want close-to-realtime progress with frequent cache savings)
                     if (ParallelAction::WORKER_RESULT === $workerResponse['action']) {
+                        \assert(isset(
+                            $workerResponse['errors'],
+                            $workerResponse['file'],
+                            // $workerResponse['fileHash'], // optional
+                            // $workerResponse['fixInfo'], // optional
+                            $workerResponse['memoryUsage'],
+                            $workerResponse['status'],
+                        ));
+
                         // Dispatch an event for each file processed and dispatch its status (required for progress output)
                         $this->dispatchEvent(FileProcessed::NAME, new FileProcessed($workerResponse['status']));
 
@@ -380,7 +418,7 @@ final class Runner
                             $this->cacheManager->setFileHash($workerResponse['file'], $workerResponse['fileHash']);
                         }
 
-                        foreach ($workerResponse['errors'] ?? [] as $error) {
+                        foreach ($workerResponse['errors'] as $error) {
                             $this->errorsManager->report(new Error(
                                 $error['type'],
                                 $error['filePath'],
@@ -388,9 +426,12 @@ final class Runner
                                     ? SourceExceptionFactory::fromArray($error['source'])
                                     : null,
                                 $error['appliedFixers'],
-                                $error['diff']
+                                $error['diff'],
                             ));
                         }
+
+                        // we collect memory on each file, as any violation may terminate processPool via stopOnViolation
+                        $this->workersMemoryUsageByProcess[$identifier->toString()] = $workerResponse['memoryUsage'];
 
                         // Pass-back information about applied changes (only if there are any)
                         if (isset($workerResponse['fixInfo'])) {
@@ -408,6 +449,8 @@ final class Runner
                     }
 
                     if (ParallelAction::WORKER_GET_FILE_CHUNK === $workerResponse['action']) {
+                        // no payload to assert on
+
                         // Request another chunk of files, if still available
                         $fileChunk = $getFileChunk();
 
@@ -418,13 +461,24 @@ final class Runner
                             return;
                         }
 
+                        // @codeCoverageIgnoreStart
                         $process->request(['action' => ParallelAction::RUNNER_REQUEST_ANALYSIS, 'files' => $fileChunk]);
 
                         return;
+                        // @codeCoverageIgnoreEnd
                     }
 
                     if (ParallelAction::WORKER_ERROR_REPORT === $workerResponse['action']) {
-                        throw WorkerException::fromRaw($workerResponse); // @phpstan-ignore-line
+                        \assert(isset(
+                            $workerResponse['class'],
+                            $workerResponse['message'],
+                            $workerResponse['file'],
+                            $workerResponse['line'],
+                            $workerResponse['code'],
+                            $workerResponse['trace'],
+                        ));
+
+                        throw WorkerException::fromRaw($workerResponse);
                     }
 
                     throw new ParallelisationException('Unsupported action: '.($workerResponse['action'] ?? 'n/a'));
@@ -439,6 +493,7 @@ final class Runner
 
                 // [REACT] Handle worker's shutdown
                 static function ($exitCode, string $output) use ($processPool, $identifier): void {
+                    // @codeCoverageIgnoreStart
                     $processPool->endProcessIfKnown($identifier);
 
                     if (0 === $exitCode || null === $exitCode) {
@@ -448,15 +503,16 @@ final class Runner
                     $errorsReported = Preg::matchAll(
                         \sprintf('/^(?:%s)([^\n]+)+/m', WorkerCommand::ERROR_PREFIX),
                         $output,
-                        $matches
+                        $matches,
                     );
 
                     if ($errorsReported > 0) {
                         throw WorkerException::fromRaw(
-                            json_decode($matches[1][0], true, 512, \JSON_THROW_ON_ERROR)
+                            json_decode($matches[1][0], true, 512, \JSON_THROW_ON_ERROR),
                         );
                     }
-                }
+                    // @codeCoverageIgnoreEnd
+                },
             );
         }
 
@@ -506,7 +562,7 @@ final class Runner
         } catch (LintingException $e) {
             $this->dispatchEvent(
                 FileProcessed::NAME,
-                new FileProcessed(FileProcessed::STATUS_INVALID)
+                new FileProcessed(FileProcessed::STATUS_INVALID),
             );
 
             $this->errorsManager->report(new Error(Error::TYPE_INVALID, $filePathname, $e));
@@ -525,7 +581,7 @@ final class Runner
         ) {
             $this->dispatchEvent(
                 FileProcessed::NAME,
-                new FileProcessed(FileProcessed::STATUS_NON_MONOLITHIC)
+                new FileProcessed(FileProcessed::STATUS_NON_MONOLITHIC),
             );
 
             return null;
@@ -547,10 +603,10 @@ final class Runner
                 \sprintf(
                     'Error while analysing file "%s": %s',
                     $filePathname,
-                    $e->getMessage()
+                    $e->getMessage(),
                 ),
                 $e->getCode(),
-                $e
+                $e,
             );
         }
 
@@ -561,7 +617,7 @@ final class Runner
                 %s
 
                 Please check your annotation(s) usage in {$filePathname} to ensure that these rules are included, or update your annotation(s) usage if they have been replaced by other rules in the version of PHP CS Fixer you are using.
-                EOT
+                EOT,
         );
 
         try {
@@ -603,6 +659,17 @@ final class Runner
                     $tokens->clearEmptyTokens();
                     $tokens->clearChanged();
                     $appliedFixers[] = $fixer->getName();
+                    if (filter_var(getenv('PHP_CS_FIXER_DEBUG'), \FILTER_VALIDATE_BOOL)) {
+                        try {
+                            $this->linter->lintSource($tokens->generateCode())->check();
+                        } catch (LintingException $e) {
+                            $this->dispatchEvent(FileProcessed::NAME, new FileProcessed(FileProcessed::STATUS_LINT));
+
+                            $this->errorsManager->report(new Error(Error::TYPE_LINT, $filePathname, $e, [$fixer->getName()], $this->differ->diff($old, $tokens->generateCode(), $file)));
+
+                            return null;
+                        }
+                    }
                 }
             }
         } catch (\ParseError $e) {
@@ -652,7 +719,7 @@ final class Runner
                         \sprintf('Failed to write file "%s" (no longer) exists.', $file->getPathname()),
                         0,
                         null,
-                        $file->getPathname()
+                        $file->getPathname(),
                     );
                 }
 
@@ -661,7 +728,7 @@ final class Runner
                         \sprintf('Cannot write file "%s" as the location exists as directory.', $fileRealPath),
                         0,
                         null,
-                        $fileRealPath
+                        $fileRealPath,
                     );
                 }
 
@@ -670,7 +737,7 @@ final class Runner
                         \sprintf('Cannot write to file "%s" as it is not writable.', $fileRealPath),
                         0,
                         null,
-                        $fileRealPath
+                        $fileRealPath,
                     );
                 }
 
@@ -681,7 +748,7 @@ final class Runner
                         \sprintf('Failed to write file "%s", "%s".', $fileRealPath, null !== $error ? $error['message'] : 'no reason available'),
                         0,
                         null,
-                        $fileRealPath
+                        $fileRealPath,
                     );
                 }
             }
@@ -691,7 +758,7 @@ final class Runner
 
         $this->dispatchEvent(
             FileProcessed::NAME,
-            new FileProcessed(null !== $fixInfo ? FileProcessed::STATUS_FIXED : FileProcessed::STATUS_NO_CHANGES, $newHash)
+            new FileProcessed(null !== $fixInfo ? FileProcessed::STATUS_FIXED : FileProcessed::STATUS_NO_CHANGES, $newHash),
         );
 
         return $fixInfo;
@@ -736,7 +803,7 @@ final class Runner
                 ? $this->fileIterator->getIterator()
                 : $this->fileIterator,
             $this->eventDispatcher,
-            $this->cacheManager
+            $this->cacheManager,
         );
     }
 }

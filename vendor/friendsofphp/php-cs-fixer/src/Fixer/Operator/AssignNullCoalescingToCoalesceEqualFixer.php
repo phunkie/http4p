@@ -34,7 +34,7 @@ final class AssignNullCoalescingToCoalesceEqualFixer extends AbstractShortOperat
                 new CodeSample(
                     "<?php\n\$foo = \$foo ?? 1;\n",
                 ),
-            ]
+            ],
         );
     }
 
@@ -64,7 +64,7 @@ final class AssignNullCoalescingToCoalesceEqualFixer extends AbstractShortOperat
 
         $nextIndex = $tokens->getNextTokenOfKind($index, ['?', ';', [\T_CLOSE_TAG]]);
 
-        return !$tokens[$nextIndex]->equals('?');
+        return null === $nextIndex || !$tokens[$nextIndex]->equals('?');
     }
 
     protected function getReplacementToken(Token $token): Token

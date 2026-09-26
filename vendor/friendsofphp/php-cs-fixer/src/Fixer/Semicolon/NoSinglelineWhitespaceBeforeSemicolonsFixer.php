@@ -31,14 +31,14 @@ final class NoSinglelineWhitespaceBeforeSemicolonsFixer extends AbstractFixer
     {
         return new FixerDefinition(
             'Single-line whitespace before closing semicolon are prohibited.',
-            [new CodeSample("<?php \$this->foo() ;\n")]
+            [new CodeSample("<?php \$this->foo() ;\n")],
         );
     }
 
     /**
      * {@inheritdoc}
      *
-     * Must run after CombineConsecutiveIssetsFixer, FunctionToConstantFixer, LongToShorthandOperatorFixer, NoEmptyStatementFixer, NoUnneededImportAliasFixer, SimplifiedIfReturnFixer, SingleImportPerStatementFixer.
+     * Must run after CombineConsecutiveIssetsFixer, FunctionToConstantFixer, LongToShorthandOperatorFixer, NoEmptyStatementFixer, NoUnneededImportAliasFixer, SingleImportPerStatementFixer.
      */
     public function getPriority(): int
     {

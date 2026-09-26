@@ -13,7 +13,6 @@ namespace Phunkie\Http4p;
 
 use Phunkie\Types\ImmMap;
 
-use function Phunkie\Functions\immmap\ImmMap;
 
 /**
  * HTTP headers as an immutable map.

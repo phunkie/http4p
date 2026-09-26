@@ -9,25 +9,20 @@ require_once __DIR__ . '/../vendor/autoload.php';
 // Define routes
 $routes = HttpRoutes(
     GET('/', fn() => Ok(['message' => 'Welcome to Http4p!'])),
-    
     GET('/users', fn() => Ok([
         ['id' => 1, 'name' => 'Alice'],
         ['id' => 2, 'name' => 'Bob'],
     ])),
-    
     GET('/users/:id', fn(int $id) => Ok(['id' => $id, 'name' => "User $id"])),
-    
     POST('/users', fn($req) => Created([
         'id' => 3,
         'name' => $req->body['name'] ?? 'Unknown',
     ])),
-    
     PUT('/users/:id', fn(int $id, $req) => Ok([
         'id' => $id,
         'name' => $req->body['name'] ?? "User $id",
         'updated' => true,
     ])),
-    
     DELETE('/users/:id', fn(int $id) => NoContent())
 );
 

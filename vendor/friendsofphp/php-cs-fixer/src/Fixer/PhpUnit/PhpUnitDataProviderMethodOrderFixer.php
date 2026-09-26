@@ -78,9 +78,9 @@ final class PhpUnitDataProviderMethodOrderFixer extends AbstractPhpUnitFixer imp
                         PHP,
                     [
                         'placement' => 'before',
-                    ]
+                    ],
                 ),
-            ]
+            ],
         );
     }
 
@@ -138,11 +138,11 @@ final class PhpUnitDataProviderMethodOrderFixer extends AbstractPhpUnitFixer imp
                     $sortedBefore = $sorted;
                     $sorted = $this->moveMethodElement(
                         $sorted,
-                        $usageName === $sameUsageName // @phpstan-ignore argument.type (https://github.com/phpstan/phpstan/issues/12482)
+                        ($usageName === $sameUsageName && false !== $sameProviderName)
                             ? $sameProviderName
                             : $usageName,
                         $providerName,
-                        true
+                        true,
                     );
 
                     // honour multiple providers order for one test

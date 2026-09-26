@@ -102,11 +102,11 @@ final class FinalInternalClassFixer extends AbstractFixer implements Configurabl
                     [
                         'include' => ['@Custom'],
                         'exclude' => ['@not-fix'],
-                    ]
+                    ],
                 ),
             ],
             null,
-            'Changing classes to `final` might cause code execution to break.'
+            'Changing classes to `final` might cause code execution to break.',
         );
     }
 
@@ -353,7 +353,7 @@ final class FinalInternalClassFixer extends AbstractFixer implements Configurabl
             }
 
             if ($oldConfigIsSet) {
-                $this->configuration[$newConfigKey] = $this->configuration[$oldConfigKey]; // @phpstan-ignore-line crazy mapping, to be removed while cleaning up deprecated options
+                $this->configuration[$newConfigKey] = $this->configuration[$oldConfigKey];
                 $this->checkAttributes = false; // run in old mode
             }
 

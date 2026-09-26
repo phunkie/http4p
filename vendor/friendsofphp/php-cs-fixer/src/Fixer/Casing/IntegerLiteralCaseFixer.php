@@ -33,9 +33,9 @@ final class IntegerLiteralCaseFixer extends AbstractFixer
             'Integer literals must be in correct case.',
             [
                 new CodeSample(
-                    "<?php\n\$foo = 0Xff;\n\$bar = 0B11111111;\n"
+                    "<?php\n\$foo = 0Xff;\n\$bar = 0B11111111;\n",
                 ),
-            ]
+            ],
         );
     }
 
@@ -55,9 +55,8 @@ final class IntegerLiteralCaseFixer extends AbstractFixer
 
             $newContent = Preg::replaceCallback(
                 '#^0([boxBOX])([0-9a-fA-F_]+)$#',
-                // @phpstan-ignore-next-line offsetAccess.notFound
                 static fn (array $matches): string => '0'.strtolower($matches[1]).strtoupper($matches[2]),
-                $content
+                $content,
             );
 
             if ($content === $newContent) {

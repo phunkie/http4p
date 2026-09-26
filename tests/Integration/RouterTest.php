@@ -57,7 +57,9 @@ class RouterTest extends TestCase
     public function test_router_passes_multiple_path_params()
     {
         $routes = HttpRoutes(
-            GET('/users/:userId/posts/:postId', fn($userId, $postId) => 
+            GET(
+                '/users/:userId/posts/:postId',
+                fn($userId, $postId) => 
                 Ok(['userId' => $userId, 'postId' => $postId])
             )
         );

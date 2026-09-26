@@ -93,6 +93,8 @@ namespace Phunkie\Http4p\Functions\routes {
 
     use Phunkie\Effect\IO\IO;
     use Phunkie\Http4p\Request;
+    use ReflectionNamedType;
+    use ReflectionParameter;
 
     /**
      * Wrap a user handler to extract path params and pass them as arguments.
@@ -121,12 +123,12 @@ namespace Phunkie\Http4p\Functions\routes {
             if (! empty($params)) {
                 // Check if first param is Request (when no path params)
                 $firstParam = $params[0];
-                if (empty($args) && $firstParam->getType()?->getName() === Request::class) {
+                if (empty($args) && expectsRequest($firstParam)) {
                     $args[] = $request;
                 } else {
                     // Check if last param is Request (after path params)
                     $lastParam = end($params);
-                    if ($lastParam->getType()?->getName() === Request::class) {
+                    if (expectsRequest($lastParam)) {
                         $args[] = $request;
                     }
                 }
@@ -135,5 +137,15 @@ namespace Phunkie\Http4p\Functions\routes {
             // Call handler with extracted arguments
             return $handler(...$args);
         };
+    }
+
+    /**
+     * @internal
+     */
+    function expectsRequest(ReflectionParameter $param): bool
+    {
+        $type = $param->getType();
+
+        return $type instanceof ReflectionNamedType && $type->getName() === Request::class;
     }
 }

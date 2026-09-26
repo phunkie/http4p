@@ -32,7 +32,7 @@ namespace {
      */
     function Response(Status $status, ?Headers $headers = null, mixed $body = ''): ResponseClass
     {
-        $headers = $headers ?? Headers();
+        $headers ??= Headers();
 
         if ($body instanceof Stream) {
             return new ResponseClass($status, $headers, $body);
@@ -47,7 +47,7 @@ namespace {
      * @template A
      * @param A $body
      * @param EntityEncoder|null $encoder
-     * @return IO<Response>
+     * @return IO<ResponseClass>
      */
     function Ok(mixed $body = null, ?EntityEncoder $encoder = null): IO
     {
@@ -60,7 +60,7 @@ namespace {
      * @template A
      * @param A $body
      * @param EntityEncoder|null $encoder
-     * @return IO<Response>
+     * @return IO<ResponseClass>
      */
     function Created(mixed $body = null, ?EntityEncoder $encoder = null): IO
     {
@@ -73,7 +73,7 @@ namespace {
      * @template A
      * @param A $body
      * @param EntityEncoder|null $encoder
-     * @return IO<Response>
+     * @return IO<ResponseClass>
      */
     function Accepted(mixed $body = null, ?EntityEncoder $encoder = null): IO
     {
@@ -83,7 +83,7 @@ namespace {
     /**
      * Create a 204 No Content response.
      *
-     * @return IO<Response>
+     * @return IO<ResponseClass>
      */
     function NoContent(): IO
     {
@@ -96,7 +96,7 @@ namespace {
      * @template A
      * @param A $body
      * @param EntityEncoder|null $encoder
-     * @return IO<Response>
+     * @return IO<ResponseClass>
      */
     function BadRequest(mixed $body = null, ?EntityEncoder $encoder = null): IO
     {
@@ -109,7 +109,7 @@ namespace {
      * @template A
      * @param A $body
      * @param EntityEncoder|null $encoder
-     * @return IO<Response>
+     * @return IO<ResponseClass>
      */
     function Unauthorized(mixed $body = null, ?EntityEncoder $encoder = null): IO
     {
@@ -122,7 +122,7 @@ namespace {
      * @template A
      * @param A $body
      * @param EntityEncoder|null $encoder
-     * @return IO<Response>
+     * @return IO<ResponseClass>
      */
     function Forbidden(mixed $body = null, ?EntityEncoder $encoder = null): IO
     {
@@ -135,7 +135,7 @@ namespace {
      * @template A
      * @param A $body
      * @param EntityEncoder|null $encoder
-     * @return IO<Response>
+     * @return IO<ResponseClass>
      */
     function NotFound(mixed $body = null, ?EntityEncoder $encoder = null): IO
     {
@@ -148,7 +148,7 @@ namespace {
      * @template A
      * @param A $body
      * @param EntityEncoder|null $encoder
-     * @return IO<Response>
+     * @return IO<ResponseClass>
      */
     function InternalServerError(mixed $body = null, ?EntityEncoder $encoder = null): IO
     {
@@ -179,7 +179,7 @@ namespace Phunkie\Http4p\Functions\response {
     function createResponse(Status $status, mixed $body, ?EntityEncoder $encoder = null): IO
     {
         return io(function () use ($status, $body, $encoder) {
-            $encoder = $encoder ?? new JsonEncoder();
+            $encoder ??= new JsonEncoder();
 
             if ($body === null) {
                 return Response($status, Headers(), '');

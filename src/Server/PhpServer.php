@@ -16,12 +16,13 @@ use Phunkie\Http4p\Headers;
 use Phunkie\Http4p\Method;
 use Phunkie\Http4p\Request;
 use Phunkie\Http4p\Response;
+use Phunkie\Http4p\Route;
 use Phunkie\Http4p\Router;
 use Phunkie\Streams\IO\File\Path;
 use Phunkie\Types\ImmList;
 
 use function Phunkie\Effect\Functions\io\io;
-use function Phunkie\Http4p\Functions\InternalServerError;
+use function InternalServerError;
 
 /**
  * Simple HTTP server using PHP's built-in capabilities.
@@ -98,7 +99,8 @@ final class PhpServer
             foreach ($response->headers->toArray() as $name => $value) {
                 header("$name: $value");
             }
-        })->flatMap(fn() => 
+        })->flatMap(
+            fn() => 
             $response->body
                 ->evalTap(fn($chunk) => io(function () use ($chunk) { echo $chunk; }))
                 ->compile()

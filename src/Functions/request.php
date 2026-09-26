@@ -27,8 +27,8 @@ namespace {
      */
     function Request(Method $method, string $uri, ?Headers $headers = null, mixed $body = null): RequestClass
     {
-        $headers = $headers ?? Headers();
-        $body = $body ?? '';
+        $headers ??= Headers();
+        $body ??= '';
 
         if ($body instanceof Stream) {
             return new RequestClass($method, $uri, $headers, $body);

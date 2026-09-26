@@ -50,11 +50,7 @@ final class Cache implements CacheInterface
 
     public function get(string $file): ?string
     {
-        if (!$this->has($file)) {
-            return null;
-        }
-
-        return $this->hashes[$file];
+        return $this->hashes[$file] ?? null;
     }
 
     public function set(string $file, string $hash): void
@@ -80,12 +76,12 @@ final class Cache implements CacheInterface
                     'ruleCustomisationPolicyVersion' => $this->getSignature()->getRuleCustomisationPolicyVersion(),
                     'hashes' => $this->hashes,
                 ],
-                \JSON_THROW_ON_ERROR
+                \JSON_THROW_ON_ERROR,
             );
         } catch (\JsonException $e) {
             throw new \UnexpectedValueException(\sprintf(
                 'Cannot encode cache signature to JSON, error: "%s". If you have non-UTF8 chars in your signature, like in license for `header_comment`, consider enabling `ext-mbstring` or install `symfony/polyfill-mbstring`.',
-                $e->getMessage()
+                $e->getMessage(),
             ));
         }
     }
@@ -101,7 +97,7 @@ final class Cache implements CacheInterface
             throw new \InvalidArgumentException(\sprintf(
                 'Value needs to be a valid JSON string, got "%s", error: "%s".',
                 $json,
-                $e->getMessage()
+                $e->getMessage(),
             ));
         }
 
@@ -120,8 +116,29 @@ final class Cache implements CacheInterface
         if (\count($missingKeys) > 0) {
             throw new \InvalidArgumentException(\sprintf(
                 'JSON data is missing keys %s',
-                Utils::naturalLanguageJoin(array_keys($missingKeys))
+                Utils::naturalLanguageJoin(array_keys($missingKeys)),
             ));
+        }
+
+        // Validate value types too, not just key presence: a syntactically-valid cache with a
+        // wrong-typed field must be treated as corrupt (rebuild) rather than crashing the process
+        // with an uncaught TypeError from the strictly-typed Signature constructor / hash mapping.
+        foreach (['php', 'version', 'indent', 'lineEnding'] as $stringKey) {
+            if (!\is_string($data[$stringKey])) {
+                throw new \InvalidArgumentException(\sprintf('JSON data key "%s" is expected to be a string.', $stringKey));
+            }
+        }
+
+        if (!\is_array($data['rules'])) {
+            throw new \InvalidArgumentException('JSON data key "rules" is expected to be an array.');
+        }
+
+        if (!\is_array($data['hashes'])) {
+            throw new \InvalidArgumentException('JSON data key "hashes" is expected to be an array.');
+        }
+
+        if (isset($data['ruleCustomisationPolicyVersion']) && !\is_string($data['ruleCustomisationPolicyVersion'])) {
+            throw new \InvalidArgumentException('JSON data key "ruleCustomisationPolicyVersion" is expected to be a string.');
         }
 
         $signature = new Signature(
@@ -130,7 +147,7 @@ final class Cache implements CacheInterface
             $data['indent'],
             $data['lineEnding'],
             $data['rules'],
-            $data['ruleCustomisationPolicyVersion'] ?? NullRuleCustomisationPolicy::VERSION_FOR_CACHE
+            $data['ruleCustomisationPolicyVersion'] ?? NullRuleCustomisationPolicy::VERSION_FOR_CACHE,
         );
 
         $cache = new self($signature);

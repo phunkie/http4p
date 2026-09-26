@@ -13,6 +13,7 @@ namespace {
 
     use Phunkie\Effect\IO\IO;
     use Phunkie\Http4p\Headers;
+    use Phunkie\Http4p\Response as ResponseClass;
     use Phunkie\Streams\IO\Read;
 
     use function Phunkie\Effect\Functions\io\io;
@@ -21,7 +22,7 @@ namespace {
      * Create a Response that streams a file.
      *
      * @param string $path Path to the file
-     * @return IO<Response>
+     * @return IO<ResponseClass>
      */
     function FileResponse(string $path): IO
     {

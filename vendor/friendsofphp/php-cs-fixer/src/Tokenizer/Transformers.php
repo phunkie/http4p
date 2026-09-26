@@ -63,10 +63,14 @@ final class Transformers
     public function transform(Tokens $tokens): void
     {
         foreach ($this->items as $transformer) {
-            foreach ($tokens as $index => $token) {
-                $transformer->process($tokens, $token, $index);
+            if (!$transformer->isCandidate($tokens)) {
+                continue;
             }
+
+            $transformer->process($tokens);
         }
+
+        $tokens->clearEmptyTokens();
     }
 
     /**
@@ -95,7 +99,7 @@ final class Transformers
     }
 
     /**
-     * @return \Generator<TransformerInterface>
+     * @return iterable<TransformerInterface>
      */
     private function findBuiltInTransformers(): iterable
     {

@@ -11,6 +11,8 @@
 
 namespace Phunkie\Functions\show {
 
+    use Phunkie\Types\Kind;
+
     use Phunkie\Cats\Show;
     use Phunkie\Types\Option;
     use function Phunkie\Functions\type\normaliseType;
@@ -132,17 +134,32 @@ namespace Phunkie\Functions\show {
     const showType = "\\Phunkie\\Functions\\show\\showType";
     function showType($value): string {return match (true) {
         is_showable($value) => $value->showType(),
-        is_integer($value) => "Int",
-        is_float($value), is_double($value) => "Double",
-        is_string($value) => "String",
-        is_resource($value) => "Resource",
-        is_bool($value) => "Boolean",
-        is_null($value) => "Null",
+        is_scalar($value), is_null($value), is_resource($value) => normaliseType(gettype($value)),
         is_array($value) => is_assoc($value) ? "Array<" . showArrayType(array_keys($value)) . ", " . showArrayType($value) . ">" : "Array<" . showArrayType($value) . ">",
         is_callable($value) => "Callable",
         is_object($value) && (new \ReflectionClass($value))->isAnonymous() =>
             get_parent_class($value) === false ? "AnonymousClass" : "AnonymousClass < " . get_parent_class($value),
+        $value instanceof Kind => showKindType($value),
         is_object($value) => get_class($value) };
+    }
+
+    /**
+     * Shows a type constructor and what it is holding.
+     *
+     * A Kind knows both without needing the Show trait, so one that does not use
+     * it still says what it is rather than falling back to its class name. The
+     * name comes from `kind` where the class declares one, that being where a
+     * type's name is written down.
+     */
+    function showKindType(Kind $value): string
+    {
+        $name = defined($value::class . '::kind')
+            ? $value::kind
+            : substr((string) strrchr('\\' . $value::class, '\\'), 1);
+
+        $variables = $value->getTypeVariables();
+
+        return $variables === [] ? $name : $name . '<' . implode(', ', $variables) . '>';
     }
 
     /**
@@ -289,7 +306,6 @@ namespace Phunkie\Functions\show {
             'Boolean' => ['*', 0],
             'Bool' => ['*', 0],
             'Float' => ['*', 0],
-            'Double' => ['*', 0],
             'Mixed' => ['*', 0],
             'Void' => ['*', 0], 
             'Null' => ['*', 0],
@@ -350,7 +366,7 @@ namespace Phunkie\Functions\show {
 
         // 4. Default fallbacks from original logic
         return match ($normalized) {
-            "Int", "String", "Boolean", "Callable", "Null", "Double", "Float", "Resource"
+            "Int", "String", "Boolean", "Callable", "Null", "Float", "Resource"
                 => Some("*"),
             "List", "Map", "Set", "Option", "ImmList", "ImmMap", "ImmSet"
                 => Some("* -> *"),

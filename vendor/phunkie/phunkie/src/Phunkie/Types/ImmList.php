@@ -30,6 +30,7 @@ use TypeError;
 use function Phunkie\Functions\show\showArrayType;
 use function Phunkie\Functions\type\promote;
 use const Phunkie\Functions\show\showValue;
+use JsonSerializable;
 
 /**
  * An immutable list implementation that preserves type information.
@@ -53,7 +54,7 @@ use const Phunkie\Functions\show\showValue;
  * @implements Foldable<A>
  * @implements Traversable<A>
  */
-class ImmList implements Kind, Applicative, Monad, Traverse, Foldable, Traversable
+class ImmList implements Kind, Applicative, Monad, Traverse, Foldable, Traversable, JsonSerializable
 {
     use Show;
     use ImmListOps;
@@ -64,7 +65,7 @@ class ImmList implements Kind, Applicative, Monad, Traverse, Foldable, Traversab
     use ImmListMonoidOps;
     use ImmListTraverseOps;
 
-    public const kind = ImmList;
+    public const kind = "List";
     private array $values;
 
     /**
@@ -121,6 +122,14 @@ class ImmList implements Kind, Applicative, Monad, Traverse, Foldable, Traversab
     }
 
     /**
+     * @return list<A>
+     */
+    public function jsonSerialize(): array
+    {
+        return array_values($this->values);
+    }
+
+    /**
      * Returns an iterator over the list elements.
      *
      * @return Iterator<A>
@@ -154,21 +163,6 @@ class ImmList implements Kind, Applicative, Monad, Traverse, Foldable, Traversab
         return $this->isEmpty() ? ["Nothing"] : [showArrayType($this->toArray())];
     }
 
-    /**
-     * Returns a string representation of the list's type.
-     *
-     * Example:
-     * ```php
-     * ImmList(1, 2, 3)->showType(); // "List<Int>"
-     * ImmList()->showType();        // "List<Nothing>"
-     * ```
-     *
-     * @return string The type representation
-     */
-    public function showType(): string
-    {
-        return sprintf("List<%s>", $this->getTypeVariables()[0]);
-    }
 
     /**
      * Constructs a non-empty list.

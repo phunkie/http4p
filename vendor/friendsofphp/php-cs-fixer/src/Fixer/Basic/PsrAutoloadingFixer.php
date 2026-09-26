@@ -65,7 +65,7 @@ final class PsrAutoloadingFixer extends AbstractFixer implements ConfigurableFix
                         class InvalidName {}
 
                         PHP,
-                    new \SplFileInfo(__FILE__)
+                    new \SplFileInfo(__FILE__),
                 ),
                 new FileSpecificCodeSample(
                     <<<'PHP'
@@ -75,11 +75,11 @@ final class PsrAutoloadingFixer extends AbstractFixer implements ConfigurableFix
 
                         PHP,
                     new \SplFileInfo(__FILE__),
-                    ['dir' => './src']
+                    ['dir' => './src'],
                 ),
             ],
             null,
-            'This fixer may change your class name, which will break the code that depends on the old name.'
+            'This fixer may change your class name, which will break the code that depends on the old name.',
         );
     }
 
@@ -118,6 +118,13 @@ final class PsrAutoloadingFixer extends AbstractFixer implements ConfigurableFix
             return false;
         }
 
+        $realPath = $file->getRealPath();
+
+        // ignore file that cannot be resolved on disk, since its location is what gets compared to the namespace
+        if (false === $realPath) {
+            return false;
+        }
+
         try {
             $tokens = Tokens::fromCode(\sprintf('<?php class %s {}', $file->getBasename('.php')));
 
@@ -131,7 +138,7 @@ final class PsrAutoloadingFixer extends AbstractFixer implements ConfigurableFix
         }
 
         // ignore stubs/fixtures, since they typically contain invalid files for various reasons
-        return !Preg::match('{[/\\\](stub|fixture)s?[/\\\]}i', $file->getRealPath());
+        return !Preg::match('{[/\\\](stub|fixture)s?[/\\\]}i', $realPath);
     }
 
     protected function configurePostNormalisation(): void

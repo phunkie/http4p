@@ -15,11 +15,13 @@ namespace Phunkie\Http4p\Functions\middleware {
     use Phunkie\Http4p\Request;
     use Phunkie\Http4p\Response;
 
+    use function Phunkie\Effect\Functions\io\io;
+
     /**
      * Apply middleware stack to a handler.
      * 
      * @param callable(Request): IO<Response> $handler
-     * @param callable(callable(Request): IO<Response>): callable(Request): IO<Response> ...$middlewares
+     * @param callable ...$middlewares Each takes the next handler and returns a wrapped handler
      * @return callable(Request): IO<Response>
      */
     function Through(callable $handler, callable ...$middlewares): callable
@@ -74,12 +76,12 @@ namespace Phunkie\Http4p\Functions\middleware {
             return function (Request $req) use ($next, $config): IO {
                 // Handle Preflight
                 if ($req->method->name === 'OPTIONS') {
-                     return \Phunkie\Http4p\Functions\response\Ok('', [
+                    return io(fn () => Response(StatusOk(), Headers([
                         'Access-Control-Allow-Origin' => $config['origin'],
                         'Access-Control-Allow-Methods' => $config['methods'],
                         'Access-Control-Allow-Headers' => $config['headers'],
-                        'Access-Control-Max-Age' => $config['max-age']
-                     ]);
+                        'Access-Control-Max-Age' => $config['max-age'],
+                    ])));
                 }
 
                 return $next($req)->map(function (Response $res) use ($config) {

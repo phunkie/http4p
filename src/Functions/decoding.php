@@ -14,6 +14,8 @@ namespace {
     use Phunkie\Effect\IO\IO;
     use Phunkie\Http4p\Request;
 
+    use function Phunkie\Effect\Functions\io\io;
+
     /**
      * Decode request body. Defaults to JSON.
      *
@@ -23,8 +25,8 @@ namespace {
      */
     function decode(Request $request, ?callable $decoder = null): IO
     {
-        $decoder = $decoder ?? fn($s) => json_decode($s, true);
+        $decoder ??= fn($s) => json_decode($s, true);
 
-        return $request->body->readAll()->map($decoder);
+        return io(fn () => $decoder(implode('', $request->body->compile()->toArray())));
     }
 }

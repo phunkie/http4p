@@ -10,10 +10,9 @@ use Md\PropertyTesting\TestTrait;
 use Phunkie\Laws\SemigroupLaws;
 use Md\PropertyTesting\Generator\RandomKindGenerator;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use function Phunkie\Functions\semigroup\combine;
 use function Phunkie\Functions\show\show;
-
-error_reporting(E_ALL & ~E_DEPRECATED);
 
 class SemigroupSpec extends TestCase
 {
@@ -21,9 +20,7 @@ class SemigroupSpec extends TestCase
     use SemigroupLaws;
     use RandomKindGenerator;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_obeys_the_law_of_combined_associativity_for_integers()
     {
         $this->forAll(
@@ -35,9 +32,7 @@ class SemigroupSpec extends TestCase
         });
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_obeys_the_law_of_combined_associativity_for_strings()
     {
         $this->forAll(
@@ -49,9 +44,7 @@ class SemigroupSpec extends TestCase
         });
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_obeys_the_law_of_combined_associativity_for_booleans()
     {
         $this->forAll(
@@ -63,9 +56,7 @@ class SemigroupSpec extends TestCase
         });
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_obeys_the_law_of_combined_associativity_for_arrays()
     {
         $this->forAll(
@@ -77,9 +68,7 @@ class SemigroupSpec extends TestCase
         });
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_obeys_the_law_of_combined_associativity_for_callables()
     {
         $this->forAll(
@@ -91,9 +80,7 @@ class SemigroupSpec extends TestCase
         });
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_obeys_the_law_of_combined_associativity_for_options()
     {
         $this->forAll(
@@ -105,9 +92,7 @@ class SemigroupSpec extends TestCase
         });
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_obeys_the_law_of_combined_associativity_for_lists()
     {
         $this->forAll(
@@ -119,9 +104,7 @@ class SemigroupSpec extends TestCase
         });
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_obeys_the_law_of_combined_associativity_for_function1()
     {
         $this->forAll(
@@ -133,9 +116,7 @@ class SemigroupSpec extends TestCase
         });
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_combines_nels()
     {
         $nel1 = Nel(1, 2, 3);
@@ -143,9 +124,7 @@ class SemigroupSpec extends TestCase
         $this->assertEquals(Nel(1, 2, 3, 4, 5, 6), combine($nel1, $nel2));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_combines_failures_with_nels()
     {
         $nel1 = Nel(1, 2, 3);
@@ -156,9 +135,7 @@ class SemigroupSpec extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_combines_compositely()
     {
         $this->assertEquals(2, combine(1, 1));

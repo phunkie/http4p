@@ -87,6 +87,8 @@ class Argument
         }
 
         if (\is_array($self->suggestedValues) && !\is_callable($self->suggestedValues) && 2 === \count($self->suggestedValues) && ($instance = $reflection->getSourceThis()) && $instance::class === $self->suggestedValues[0] && \is_callable([$instance, $self->suggestedValues[1]])) {
+            // In case that the callback is declared as a static method `[Foo::class, 'methodName']` - yet it is not callable,
+            // while non-static method `[Foo $instance, 'methodName']` would be callable, we transform the callback on the fly into a non-static version.
             $self->suggestedValues = [$instance, $self->suggestedValues[1]];
         }
 
@@ -122,6 +124,10 @@ class Argument
 
         if (is_subclass_of($this->typeName, \BackedEnum::class) && (\is_string($value) || \is_int($value))) {
             return $this->typeName::tryFrom($value) ?? throw InvalidArgumentException::fromEnumValue($this->name, $value, $this->suggestedValues);
+        }
+
+        if (\is_string($value) && \in_array($this->typeName, ['int', 'float'], true) && !is_numeric($value)) {
+            throw InvalidArgumentException::fromInvalidType($this->name, $value, $this->typeName);
         }
 
         return $value;
