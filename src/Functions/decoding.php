@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace {
+namespace Phunkie\Http4p\Functions {
 
     use Phunkie\Effect\IO\IO;
     use Phunkie\Http4p\Request;

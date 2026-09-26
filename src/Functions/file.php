@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace {
+namespace Phunkie\Http4p\Functions {
 
     use Phunkie\Effect\IO\IO;
     use Phunkie\Http4p\Headers;
@@ -17,6 +17,7 @@ namespace {
     use Phunkie\Streams\IO\Read;
 
     use function Phunkie\Effect\Functions\io\io;
+    use function Phunkie\Http4p\Functions\response\NotFound;
 
     /**
      * Create a Response that streams a file.

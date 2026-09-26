@@ -14,6 +14,9 @@ namespace Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Phunkie\Http4p\Method;
 
+use function Phunkie\Http4p\Functions\Request;
+use function Phunkie\Http4p\Functions\decode;
+
 final class DecodingTest extends TestCase
 {
     public function testDecodesAJsonBodyByDefault(): void

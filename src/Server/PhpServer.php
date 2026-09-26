@@ -12,6 +12,7 @@
 namespace Phunkie\Http4p\Server;
 
 use Phunkie\Effect\IO\IO;
+use Phunkie\Http4p\Encoder\JsonEncoder;
 use Phunkie\Http4p\Headers;
 use Phunkie\Http4p\Method;
 use Phunkie\Http4p\Request;
@@ -20,9 +21,12 @@ use Phunkie\Http4p\Route;
 use Phunkie\Http4p\Router;
 use Phunkie\Streams\IO\File\Path;
 use Phunkie\Types\ImmList;
+use Throwable;
 
 use function Phunkie\Effect\Functions\io\io;
-use function InternalServerError;
+use function Phunkie\Http4p\Functions\Headers;
+use function Phunkie\Http4p\Functions\Response;
+use function Phunkie\Http4p\Functions\StatusInternalServerError;
 
 /**
  * Simple HTTP server using PHP's built-in capabilities.
@@ -78,10 +82,11 @@ final class PhpServer
 
             return new Request($method, $uri, Headers($headers), $body);
         })->flatMap(fn ($request) => ($this->handler)($request))
-            ->handleError(fn ($e) => InternalServerError([
-                'error' => 'Internal Server Error',
-                'message' => $e->getMessage(),
-            ]));
+            ->handleError(fn (Throwable $e) => Response(
+                StatusInternalServerError(),
+                Headers(['content-type' => 'application/json']),
+                (new JsonEncoder())->encode(['error' => 'Internal Server Error', 'message' => $e->getMessage()]),
+            ));
     }
 
     /**

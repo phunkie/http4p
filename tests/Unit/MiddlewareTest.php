@@ -19,6 +19,9 @@ use Phunkie\Http4p\Response;
 use function Phunkie\Http4p\Functions\middleware\Cors;
 use function Phunkie\Http4p\Functions\middleware\Logger;
 use function Phunkie\Http4p\Functions\middleware\Through;
+use function Phunkie\Http4p\Functions\response\Created;
+use function Phunkie\Http4p\Functions\response\Ok;
+use function Phunkie\Http4p\Functions\Request;
 
 final class MiddlewareTest extends TestCase
 {

@@ -5,6 +5,10 @@ namespace Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Phunkie\Http4p\Method;
 
+use function Phunkie\Http4p\Functions\routes\GET;
+use function Phunkie\Http4p\Functions\response\Ok;
+use function Phunkie\Http4p\Functions\Request;
+
 class RouteTest extends TestCase
 {
     public function test_route_matches_exact_path()
@@ -79,5 +83,14 @@ class RouteTest extends TestCase
         $params = $route->extractParams('/posts/123');
         
         $this->assertNull($params);
+    }
+
+    public function test_route_ignores_the_query_string_when_matching()
+    {
+        $route = GET('/users/:id', fn($id) => Ok(['id' => $id]));
+        $request = Request(Method::GET, '/users/7?page=2&sort=name');
+
+        $this->assertTrue($route->matches($request));
+        $this->assertSame(['id' => 7], $route->extractParams($request->uri));
     }
 }

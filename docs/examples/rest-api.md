@@ -5,7 +5,8 @@ Here is a complete example of a simple User API.
 ```php
 use Phunkie\Http4p\Server\PhpServer;
 use Phunkie\Http4p\Request;
-use function Phunkie\Http4p\Functions\{HttpRoutes, GET, POST};
+use function Phunkie\Http4p\Functions\HttpRoutes;
+use function Phunkie\Http4p\Functions\routes\{GET, POST};
 use function Phunkie\Http4p\Functions\response\{Ok, Created, NotFound};
 use function Phunkie\Effect\Functions\io\io;
 

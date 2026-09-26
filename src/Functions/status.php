@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace {
+namespace Phunkie\Http4p\Functions {
 
     use Phunkie\Http4p\Status as StatusClass;
 

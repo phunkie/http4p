@@ -6,6 +6,8 @@ use PHPUnit\Framework\TestCase;
 use Phunkie\Effect\IO\IO;
 use Phunkie\Streams\Type\Stream;
 
+use function Phunkie\Http4p\Functions\FileResponse;
+
 class FileResponseTest extends TestCase
 {
     private string $tempFile;

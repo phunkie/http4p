@@ -4,6 +4,13 @@ namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
+use function Phunkie\Http4p\Functions\response\BadRequest;
+use function Phunkie\Http4p\Functions\response\Created;
+use function Phunkie\Http4p\Functions\response\InternalServerError;
+use function Phunkie\Http4p\Functions\response\NoContent;
+use function Phunkie\Http4p\Functions\response\NotFound;
+use function Phunkie\Http4p\Functions\response\Ok;
+
 class ResponseConstructorsTest extends TestCase
 {
     public function test_ok_response()
