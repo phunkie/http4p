@@ -35,3 +35,19 @@ $app = Through($handler, Cors([
 | `methods` | `GET, POST, ...` | Allowed Methods |
 | `headers` | `Content-Type...` | Allowed Headers |
 | `max-age` | `86400` | Max Age for Preflight |
+
+## Recover
+
+`Recover(SomeException::class, $handler)` answers one class of exception, thrown anywhere inside the wrapped handler, with the response the handler returns. Anything else keeps propagating, so the built-in server still answers it with a 500. Stack one per exception class:
+
+```php
+use function Phunkie\Http4p\Functions\middleware\{Recover, Through};
+
+$app = Through(
+    new Router($routes),
+    Recover(RowNotFound::class, fn(RowNotFound $e) => NotFound(['error' => $e->getMessage()])),
+    Recover(ConstraintViolation::class, fn(ConstraintViolation $e) => Conflict(['error' => $e->getMessage()])),
+);
+```
+
+A single route can still override it with `IO::recover()` on its own effect.

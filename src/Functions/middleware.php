@@ -14,6 +14,7 @@ namespace Phunkie\Http4p\Functions\middleware {
     use Phunkie\Effect\IO\IO;
     use Phunkie\Http4p\Request;
     use Phunkie\Http4p\Response;
+    use Throwable;
 
     use function Phunkie\Effect\Functions\io\io;
     use function Phunkie\Http4p\Functions\Headers;
@@ -95,5 +96,16 @@ namespace Phunkie\Http4p\Functions\middleware {
                 });
             };
         };
+    }
+
+    /**
+     * Answer one class of exception, thrown anywhere in the wrapped handler, with a response.
+     *
+     * @param class-string<Throwable> $exceptionClass
+     * @param callable(Throwable): IO<Response> $handler
+     */
+    function Recover(string $exceptionClass, callable $handler): callable
+    {
+        return fn (callable $next): callable => fn (Request $req): IO => $next($req)->recover($exceptionClass, $handler);
     }
 }

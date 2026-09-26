@@ -16,9 +16,12 @@ use Phunkie\Http4p\Method;
 use Phunkie\Http4p\Request;
 use Phunkie\Http4p\Response;
 
+use function Phunkie\Effect\Functions\io\io;
 use function Phunkie\Http4p\Functions\middleware\Cors;
 use function Phunkie\Http4p\Functions\middleware\Logger;
+use function Phunkie\Http4p\Functions\middleware\Recover;
 use function Phunkie\Http4p\Functions\middleware\Through;
+use function Phunkie\Http4p\Functions\response\NotFound;
 use function Phunkie\Http4p\Functions\response\Created;
 use function Phunkie\Http4p\Functions\response\Ok;
 use function Phunkie\Http4p\Functions\Request;
@@ -56,5 +59,21 @@ final class MiddlewareTest extends TestCase
 
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(201, $response->status->code);
+    }
+
+    public function testRecoverAnswersOneExceptionClassAndLetsTheRestPropagate(): void
+    {
+        $app = Through(
+            fn (Request $request) => io(fn () => throw new \DomainException('Author 9 not found')),
+            Recover(\DomainException::class, fn (\DomainException $e) => NotFound(['error' => $e->getMessage()])),
+        );
+
+        $response = $app(Request(Method::GET, '/authors/9'))->unsafeRun();
+
+        $this->assertSame(404, $response->status->code);
+        $this->assertSame('{"error":"Author 9 not found"}', implode('', $response->body->toArray()));
+
+        $this->expectException(\RuntimeException::class);
+        Through(fn (Request $request) => io(fn () => throw new \RuntimeException('other')), Recover(\DomainException::class, fn () => NotFound()))(Request(Method::GET, '/'))->unsafeRun();
     }
 }
