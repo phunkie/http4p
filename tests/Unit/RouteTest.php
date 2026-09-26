@@ -84,4 +84,13 @@ class RouteTest extends TestCase
         
         $this->assertNull($params);
     }
+
+    public function test_route_ignores_the_query_string_when_matching()
+    {
+        $route = GET('/users/:id', fn($id) => Ok(['id' => $id]));
+        $request = Request(Method::GET, '/users/7?page=2&sort=name');
+
+        $this->assertTrue($route->matches($request));
+        $this->assertSame(['id' => 7], $route->extractParams($request->uri));
+    }
 }

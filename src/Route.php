@@ -52,7 +52,7 @@ final readonly class Route
     {
         $pattern = $this->convertPatternToRegex($this->pattern);
 
-        if (! preg_match($pattern, $uri, $matches)) {
+        if (! preg_match($pattern, $this->path($uri), $matches)) {
             return null;
         }
 
@@ -72,7 +72,14 @@ final readonly class Route
     {
         $pattern = $this->convertPatternToRegex($this->pattern);
 
-        return preg_match($pattern, $uri) === 1;
+        return preg_match($pattern, $this->path($uri)) === 1;
+    }
+
+    private function path(string $uri): string
+    {
+        $path = parse_url($uri, PHP_URL_PATH);
+
+        return is_string($path) ? $path : $uri;
     }
 
     private function convertPatternToRegex(string $pattern): string
