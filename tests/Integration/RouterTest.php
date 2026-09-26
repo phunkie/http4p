@@ -3,6 +3,7 @@
 namespace Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
+use Phunkie\Http4p\DecodeFailure;
 use Phunkie\Http4p\Method;
 use Phunkie\Http4p\Request;
 use Phunkie\Http4p\Router;
@@ -10,6 +11,7 @@ use Phunkie\Http4p\Router;
 use function Phunkie\Http4p\Functions\response\Created;
 use function Phunkie\Http4p\Functions\routes\DELETE;
 use function Phunkie\Http4p\Functions\routes\GET;
+use function Phunkie\Effect\Functions\io\io;
 use function Phunkie\Http4p\Functions\HttpRoutes;
 use function Phunkie\Http4p\Functions\response\Ok;
 use function Phunkie\Http4p\Functions\routes\POST;
@@ -118,5 +120,17 @@ class RouterTest extends TestCase
         
         $deleteResponse = $router->route(Request(Method::DELETE, '/resource'))->unsafeRun();
         $this->assertEquals(['{"method":"DELETE"}'], $deleteResponse->body->toArray());
+    }
+
+    public function test_router_answers_a_decode_failure_with_400()
+    {
+        $router = new Router(HttpRoutes(
+            POST('/users', fn(Request $request) => io(fn() => throw new DecodeFailure('Body does not describe a User.', ['email' => 'missing'])))
+        ));
+
+        $response = $router->route(Request(Method::POST, '/users', null, '{}'))->unsafeRun();
+
+        $this->assertEquals(400, $response->status->code);
+        $this->assertEquals('{"error":"Body does not describe a User.","errors":{"email":"missing"}}', implode('', $response->body->toArray()));
     }
 }

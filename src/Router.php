@@ -12,9 +12,13 @@
 namespace Phunkie\Http4p;
 
 use Phunkie\Effect\IO\IO;
+use Phunkie\Http4p\Encoder\JsonEncoder;
 use Phunkie\Types\ImmList;
+use Throwable;
 
-use function Phunkie\Effect\Functions\io\io;
+use function Phunkie\Http4p\Functions\Headers;
+use function Phunkie\Http4p\Functions\Response;
+use function Phunkie\Http4p\Functions\StatusBadRequest;
 use function Phunkie\Http4p\Functions\response\NotFound;
 
 /**
@@ -41,7 +45,8 @@ final class Router
                 $params = $route->extractParams($request->uri);
                 $requestWithParams = $request->withPathParams($params ?? []);
 
-                return ($route->handler)($requestWithParams);
+                return ($route->handler)($requestWithParams)
+                    ->handleError(fn (Throwable $e) => $e instanceof DecodeFailure ? $this->badRequest($e) : throw $e);
             }
         }
 
@@ -52,5 +57,14 @@ final class Router
     public function __invoke(Request $request): IO
     {
         return $this->route($request);
+    }
+
+    private function badRequest(DecodeFailure $failure): Response
+    {
+        return Response(
+            StatusBadRequest(),
+            Headers(['content-type' => 'application/json']),
+            (new JsonEncoder())->encode(['error' => $failure->getMessage()] + ([] === $failure->errors() ? [] : ['errors' => $failure->errors()])),
+        );
     }
 }
