@@ -6,7 +6,7 @@ Every helper lives under `Phunkie\Http4p\Functions`. Import what you use with `u
 |-----------|-----------|
 | `Phunkie\Http4p\Functions` | `HttpRoutes`, `Request`, `Response`, `Headers`, `Status`, `StatusOk` and the other status constructors, `decode`, `FileResponse` |
 | `Phunkie\Http4p\Functions\routes` | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
-| `Phunkie\Http4p\Functions\response` | `Ok`, `Created`, `Accepted`, `NoContent`, `BadRequest`, `Unauthorized`, `Forbidden`, `NotFound`, `InternalServerError` |
+| `Phunkie\Http4p\Functions\response` | `Ok`, `Created`, `Accepted`, `NoContent`, `BadRequest`, `Unauthorized`, `Forbidden`, `NotFound`, `Conflict`, `InternalServerError` |
 | `Phunkie\Http4p\Functions\decoding` | `json` |
 | `Phunkie\Http4p\Functions\middleware` | `Through`, `Logger`, `Cors` |
 | `Phunkie\Http4p\Functions\headers` | `get`, `put`, `remove` |

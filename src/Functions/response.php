@@ -48,6 +48,7 @@ namespace Phunkie\Http4p\Functions\response {
 
     use function Phunkie\Http4p\Functions\StatusAccepted;
     use function Phunkie\Http4p\Functions\StatusBadRequest;
+    use function Phunkie\Http4p\Functions\StatusConflict;
     use function Phunkie\Http4p\Functions\StatusCreated;
     use function Phunkie\Http4p\Functions\StatusForbidden;
     use function Phunkie\Http4p\Functions\StatusInternalServerError;
@@ -155,6 +156,19 @@ namespace Phunkie\Http4p\Functions\response {
     function NotFound(mixed $body = null, ?EntityEncoder $encoder = null): IO
     {
         return createResponse(StatusNotFound(), $body, $encoder);
+    }
+
+    /**
+     * Create a 409 Conflict response.
+     *
+     * @template A
+     * @param A $body
+     * @param EntityEncoder|null $encoder
+     * @return IO<ResponseClass>
+     */
+    function Conflict(mixed $body = null, ?EntityEncoder $encoder = null): IO
+    {
+        return createResponse(StatusConflict(), $body, $encoder);
     }
 
     /**
