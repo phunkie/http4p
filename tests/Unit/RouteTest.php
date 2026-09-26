@@ -5,6 +5,10 @@ namespace Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Phunkie\Http4p\Method;
 
+use function Phunkie\Http4p\Functions\routes\GET;
+use function Phunkie\Http4p\Functions\response\Ok;
+use function Phunkie\Http4p\Functions\Request;
+
 class RouteTest extends TestCase
 {
     public function test_route_matches_exact_path()

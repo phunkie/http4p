@@ -7,6 +7,15 @@ use Phunkie\Http4p\Method;
 use Phunkie\Http4p\Request;
 use Phunkie\Http4p\Router;
 
+use function Phunkie\Http4p\Functions\response\Created;
+use function Phunkie\Http4p\Functions\routes\DELETE;
+use function Phunkie\Http4p\Functions\routes\GET;
+use function Phunkie\Http4p\Functions\HttpRoutes;
+use function Phunkie\Http4p\Functions\response\Ok;
+use function Phunkie\Http4p\Functions\routes\POST;
+use function Phunkie\Http4p\Functions\routes\PUT;
+use function Phunkie\Http4p\Functions\Request;
+
 class RouterTest extends TestCase
 {
     public function test_router_routes_to_matching_handler()

@@ -4,6 +4,8 @@ namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
+use function Phunkie\Http4p\Functions\Headers;
+
 class HeadersTest extends TestCase
 {
     public function test_empty_headers()

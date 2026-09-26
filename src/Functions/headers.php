@@ -9,10 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace {
+namespace Phunkie\Http4p\Functions {
 
     use Phunkie\Http4p\Headers as HeadersClass;
     use Phunkie\Types\ImmMap;
+
+    use function ImmMap;
 
     /**
      * Create Headers from array or empty.

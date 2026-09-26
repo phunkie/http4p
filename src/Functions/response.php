@@ -9,18 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace {
+namespace Phunkie\Http4p\Functions {
 
-    use Phunkie\Streams\Type\Stream;
-    use Phunkie\Effect\IO\IO;
-    use Phunkie\Http4p\Encoder\JsonEncoder;
-    use Phunkie\Http4p\EntityEncoder;
     use Phunkie\Http4p\Headers;
     use Phunkie\Http4p\Response as ResponseClass;
     use Phunkie\Http4p\Status;
-
-    use function Phunkie\Effect\Functions\io\io;
-    use function Phunkie\Http4p\Functions\response\createResponse;
+    use Phunkie\Streams\Type\Stream;
 
     /**
      * Create a Response.
@@ -40,6 +34,27 @@ namespace {
 
         return new ResponseClass($status, $headers, \Stream($body));
     }
+}
+
+namespace Phunkie\Http4p\Functions\response {
+
+    use Phunkie\Streams\Type\Stream;
+    use Phunkie\Effect\IO\IO;
+    use Phunkie\Http4p\Encoder\JsonEncoder;
+    use Phunkie\Http4p\EntityEncoder;
+    use Phunkie\Http4p\Headers;
+    use Phunkie\Http4p\Response as ResponseClass;
+    use Phunkie\Http4p\Status;
+
+    use function Phunkie\Http4p\Functions\StatusAccepted;
+    use function Phunkie\Http4p\Functions\StatusBadRequest;
+    use function Phunkie\Http4p\Functions\StatusCreated;
+    use function Phunkie\Http4p\Functions\StatusForbidden;
+    use function Phunkie\Http4p\Functions\StatusInternalServerError;
+    use function Phunkie\Http4p\Functions\StatusNoContent;
+    use function Phunkie\Http4p\Functions\StatusNotFound;
+    use function Phunkie\Http4p\Functions\StatusOk;
+    use function Phunkie\Http4p\Functions\StatusUnauthorized;
 
     /**
      * Create a 200 OK response.
@@ -168,8 +183,8 @@ namespace Phunkie\Http4p\Functions\response {
 
     use function Phunkie\Effect\Functions\io\io;
 
-    // Import global Response function
-    use function Response;
+    use function Phunkie\Http4p\Functions\Headers;
+    use function Phunkie\Http4p\Functions\Response;
 
     /**
      * Helper to create a response with encoded body.

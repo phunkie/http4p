@@ -6,6 +6,15 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use function Phunkie\Http4p\Functions\response\Created;
+use function Phunkie\Http4p\Functions\routes\DELETE;
+use function Phunkie\Http4p\Functions\routes\GET;
+use function Phunkie\Http4p\Functions\HttpRoutes;
+use function Phunkie\Http4p\Functions\response\NoContent;
+use function Phunkie\Http4p\Functions\response\Ok;
+use function Phunkie\Http4p\Functions\routes\POST;
+use function Phunkie\Http4p\Functions\routes\PUT;
+
 // Define routes
 $routes = HttpRoutes(
     GET('/', fn() => Ok(['message' => 'Welcome to Http4p!'])),

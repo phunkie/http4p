@@ -4,6 +4,11 @@ namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
+use function Phunkie\Http4p\Functions\Headers;
+use function Phunkie\Http4p\Functions\Response;
+use function Phunkie\Http4p\Functions\StatusNotFound;
+use function Phunkie\Http4p\Functions\StatusOk;
+
 class ResponseTest extends TestCase
 {
     public function test_response_constructor()

@@ -15,7 +15,7 @@ use Phunkie\Effect\IO\IO;
 use Phunkie\Types\ImmList;
 
 use function Phunkie\Effect\Functions\io\io;
-use function NotFound;
+use function Phunkie\Http4p\Functions\response\NotFound;
 
 /**
  * Routes HTTP requests to handlers.

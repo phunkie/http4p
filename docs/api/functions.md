@@ -1,5 +1,22 @@
 # Functions Reference
 
+Every helper lives under `Phunkie\Http4p\Functions`. Import what you use with `use function`:
+
+| Namespace | Functions |
+|-----------|-----------|
+| `Phunkie\Http4p\Functions` | `HttpRoutes`, `Request`, `Response`, `Headers`, `Status`, `StatusOk` and the other status constructors, `decode`, `FileResponse` |
+| `Phunkie\Http4p\Functions\routes` | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
+| `Phunkie\Http4p\Functions\response` | `Ok`, `Created`, `Accepted`, `NoContent`, `BadRequest`, `Unauthorized`, `Forbidden`, `NotFound`, `InternalServerError` |
+| `Phunkie\Http4p\Functions\middleware` | `Through`, `Logger`, `Cors` |
+| `Phunkie\Http4p\Functions\headers` | `get`, `put`, `remove` |
+| `Phunkie\Http4p\Functions\status` | `isSuccess`, `isRedirect`, `isClientError`, `isServerError` |
+
+```php
+use function Phunkie\Http4p\Functions\HttpRoutes;
+use function Phunkie\Http4p\Functions\routes\GET;
+use function Phunkie\Http4p\Functions\response\Ok;
+```
+
 ## Routing
 - `HttpRoutes(Route ...$routes): ImmList<Route>`
 - `GET(string $path, callable $handler): Route`

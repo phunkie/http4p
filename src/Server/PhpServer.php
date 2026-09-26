@@ -22,7 +22,8 @@ use Phunkie\Streams\IO\File\Path;
 use Phunkie\Types\ImmList;
 
 use function Phunkie\Effect\Functions\io\io;
-use function InternalServerError;
+use function Phunkie\Http4p\Functions\Headers;
+use function Phunkie\Http4p\Functions\response\InternalServerError;
 
 /**
  * Simple HTTP server using PHP's built-in capabilities.

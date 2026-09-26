@@ -5,6 +5,9 @@ namespace Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Phunkie\Http4p\Method;
 
+use function Phunkie\Http4p\Functions\Headers;
+use function Phunkie\Http4p\Functions\Request;
+
 class RequestTest extends TestCase
 {
     public function test_request_constructor()

@@ -9,13 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace {
+namespace Phunkie\Http4p\Functions\routes {
 
     use Phunkie\Http4p\Method;
     use Phunkie\Http4p\Route;
-    use Phunkie\Types\ImmList;
 
-    use function Phunkie\Http4p\Functions\routes\wrapHandler;
 
     /**
      * Define a GET route.
@@ -77,16 +75,6 @@ namespace {
         return new Route(Method::DELETE, $pattern, wrapHandler($pattern, $handler));
     }
 
-    /**
-     * Create an HttpRoutes collection.
-     *
-     * @param Route ...$routes
-     * @return ImmList<Route>
-     */
-    function HttpRoutes(Route ...$routes): ImmList
-    {
-        return ImmList(...$routes);
-    }
 }
 
 namespace Phunkie\Http4p\Functions\routes {
@@ -147,5 +135,24 @@ namespace Phunkie\Http4p\Functions\routes {
         $type = $param->getType();
 
         return $type instanceof ReflectionNamedType && $type->getName() === Request::class;
+    }
+}
+
+namespace Phunkie\Http4p\Functions {
+
+    use Phunkie\Http4p\Route;
+    use Phunkie\Types\ImmList;
+
+    use function ImmList;
+
+    /**
+     * Create an HttpRoutes collection.
+     *
+     * @param Route ...$routes
+     * @return ImmList<Route>
+     */
+    function HttpRoutes(Route ...$routes): ImmList
+    {
+        return ImmList(...$routes);
     }
 }

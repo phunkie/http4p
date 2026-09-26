@@ -16,6 +16,9 @@ namespace Phunkie\Http4p\Functions\middleware {
     use Phunkie\Http4p\Response;
 
     use function Phunkie\Effect\Functions\io\io;
+    use function Phunkie\Http4p\Functions\Headers;
+    use function Phunkie\Http4p\Functions\Response;
+    use function Phunkie\Http4p\Functions\StatusOk;
 
     /**
      * Apply middleware stack to a handler.

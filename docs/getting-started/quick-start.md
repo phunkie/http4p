@@ -7,7 +7,7 @@ Create an `index.php` file:
 
 use Phunkie\Http4p\Server\PhpServer;
 use function Phunkie\Http4p\Functions\HttpRoutes;
-use function Phunkie\Http4p\Functions\GET;
+use function Phunkie\Http4p\Functions\routes\GET;
 use function Phunkie\Http4p\Functions\response\Ok;
 
 require_once __DIR__ . '/vendor/autoload.php';

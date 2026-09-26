@@ -4,6 +4,12 @@ namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
+use function Phunkie\Http4p\Functions\Status;
+use function Phunkie\Http4p\Functions\StatusCreated;
+use function Phunkie\Http4p\Functions\StatusInternalServerError;
+use function Phunkie\Http4p\Functions\StatusNotFound;
+use function Phunkie\Http4p\Functions\StatusOk;
+
 class StatusTest extends TestCase
 {
     public function test_status_constructor()
