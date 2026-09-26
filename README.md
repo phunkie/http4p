@@ -6,11 +6,12 @@ A functional HTTP library for PHP inspired by Scala's http4s.
 
 Http4p provides a purely functional approach to building HTTP servers and clients in PHP. Built on Phunkie Effect and Streams, it offers:
 
-- **Type-safe routing** - Compile-time route validation
-- **Effect-based handlers** - All HTTP operations as IO effects
+- **Routes as values** - `GET`, `POST` and friends build a list of routes, the router matches the path
+- **Effect-based handlers** - Every handler returns `IO<Response>`, nothing runs until the server runs it
+- **Bodies decoded against your classes** - `decode($req, User::class)` validates the JSON body against the constructor and answers a bad body with a 400 listing every problem
 - **Streaming bodies** - Responses use `Stream` for constant memory usage
-- **Composable middleware** - Build complex pipelines from simple parts
-- **Functional error handling** - No exceptions, just values
+- **Composable middleware** - `Through($app, Logger(), Cors(), Recover(...))`
+- **Errors answered where you decide** - `Recover(SomeException::class, $handler)` turns an exception into a response for the whole app, `IO::recover()` for one route
 
 ## Installation
 
@@ -20,10 +21,10 @@ composer require phunkie/http4p
 
 ## Requirements
 
-- PHP 8.2 || 8.3 || 8.4
-- phunkie/phunkie ^1.0
-- phunkie/effect ^1.2
-- phunkie/streams ^1.0
+- PHP 8.2 || 8.3 || 8.4 || 8.5
+- phunkie/phunkie ^1.5
+- phunkie/effect ^1.4
+- phunkie/streams ^1.2
 
 ## Core Concepts
 
@@ -55,32 +56,58 @@ Route handlers return `IO`:
 fn(int $id): IO;
 
 // Response constructors return IO<Response>
-Ok($value);        // Encodes value to Stream
-Ok($stream);       // Uses stream directly
+Ok($value);        // EntityEncoder turns the value into a JSON body
+Ok($stream);       // Uses the stream as the body
 ```
+
+The constructors take the body as their first argument, so they compose as first-class callables: `$io->flatMap(Ok(...))`.
 
 ## Quick Start
 
 ```php
-use Phunkie\Http4p\Request;
-use Phunkie\Http4p\Server\PhpServer;
-use function Phunkie\Http4p\Functions\HttpRoutes;
-use function Phunkie\Http4p\Functions\routes\{GET, POST};
-use function Phunkie\Http4p\Functions\response\{Ok, Created};
+<?php
 
-// Define routes - handlers return IO<Response>
-$routes = HttpRoutes(
-    GET('/users/:id', fn(int $id) =>
-        Ok(['id' => $id])  // EntityEncoder converts to Stream
-    ),
-    
-    POST('/users', fn(Request $req) =>
-        Created(['message' => 'User created', 'data' => $req->body])
-    )
+use Phunkie\Http4p\Request;
+use Phunkie\Http4p\Router;
+use Phunkie\Http4p\Server\PhpServer;
+
+use function Phunkie\Http4p\Functions\decode;
+use function Phunkie\Http4p\Functions\HttpRoutes;
+use function Phunkie\Http4p\Functions\middleware\{Recover, Through};
+use function Phunkie\Http4p\Functions\response\{Created, NotFound, Ok};
+use function Phunkie\Http4p\Functions\routes\{GET, POST};
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+final readonly class User
+{
+    public function __construct(public string $name, public string $email) {}
+}
+
+$users = new Users();   // whatever holds your data; its methods return IO
+
+$app = Through(
+    new Router(HttpRoutes(
+        GET('/users', fn() => $users->all()->flatMap(Ok(...))),
+
+        GET('/users/:id', fn(int $id) => $users->get($id)->flatMap(Ok(...))),
+
+        POST('/users', fn(Request $req) =>
+            decode($req, User::class)
+                ->flatMap(fn(array $data) => $users->add($data))
+                ->flatMap(Created(...))
+        ),
+    )),
+    Recover(UserNotFound::class, fn(UserNotFound $e) => NotFound(['error' => $e->getMessage()])),
 );
 
-// Build and run server
-(new PhpServer($routes))->run(8080)->unsafeRun();
+(new PhpServer($app))->run(8080)->unsafeRun();
+```
+
+A `POST /users` with `{"name": 7}` never reaches the handler; the router answers:
+
+```json
+{"error": "Body does not describe User.", "errors": {"name": "expected string, got int", "email": "missing"}}
 ```
 
 ## Documentation
@@ -89,8 +116,10 @@ Full documentation is available in [docs/](docs/index.md).
 
 - [Getting Started](docs/getting-started/quick-start.md)
 - [Core Concepts](docs/getting-started/core-concepts.md)
+- [Entity Decoding](docs/core/entity-decoding.md)
 - [Streaming](docs/core/streaming.md)
 - [Middleware](docs/middleware/basics.md)
+- [REST API example](docs/examples/rest-api.md)
 - [API Reference](docs/api/functions.md)
 
 ## License
