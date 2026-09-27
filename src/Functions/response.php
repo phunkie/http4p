@@ -56,6 +56,7 @@ namespace Phunkie\Http4p\Functions\response {
     use function Phunkie\Http4p\Functions\StatusNotFound;
     use function Phunkie\Http4p\Functions\StatusOk;
     use function Phunkie\Http4p\Functions\StatusUnauthorized;
+    use function Phunkie\Http4p\Functions\StatusUnprocessableEntity;
 
     /**
      * Create a 200 OK response.
@@ -169,6 +170,19 @@ namespace Phunkie\Http4p\Functions\response {
     function Conflict(mixed $body = null, ?EntityEncoder $encoder = null): IO
     {
         return createResponse(StatusConflict(), $body, $encoder);
+    }
+
+    /**
+     * Create a 422 Unprocessable Entity response.
+     *
+     * @template A
+     * @param A $body
+     * @param EntityEncoder|null $encoder
+     * @return IO<ResponseClass>
+     */
+    function UnprocessableEntity(mixed $body = null, ?EntityEncoder $encoder = null): IO
+    {
+        return createResponse(StatusUnprocessableEntity(), $body, $encoder);
     }
 
     /**

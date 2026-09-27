@@ -41,13 +41,21 @@ $app = Through($handler, Cors([
 `Recover(SomeException::class, $handler)` answers one class of exception, thrown anywhere inside the wrapped handler, with the response the handler returns. Anything else keeps propagating, so the built-in server still answers it with a 500. Stack one per exception class:
 
 ```php
+use Phunkie\Phetch\Constraint;
+use Phunkie\Phetch\ConstraintViolation;
+use Phunkie\Phetch\RowNotFound;
+
 use function Phunkie\Http4p\Functions\middleware\{Recover, Through};
+use function Phunkie\Http4p\Functions\response\{Conflict, NotFound, UnprocessableEntity};
 
 $app = Through(
     new Router($routes),
     Recover(RowNotFound::class, fn(RowNotFound $e) => NotFound(['error' => $e->getMessage()])),
-    Recover(ConstraintViolation::class, fn(ConstraintViolation $e) => Conflict(['error' => $e->getMessage()])),
+    Recover(ConstraintViolation::class, fn(ConstraintViolation $e) => match ($e->constraint) {
+        Constraint::Unique => Conflict(['error' => $e->getMessage()]),
+        default => UnprocessableEntity(['error' => $e->getMessage()]),
+    }),
 );
 ```
 
-A single route can still override it with `IO::recover()` on its own effect.
+The handler receives the exception, so one `Recover` can answer differently by what it carries: here phetch's `ConstraintViolation` becomes a `409` for a duplicate key and a `422` for a missing foreign row, a null or a failed check. A single route can still override it with `IO::recover()` on its own effect.
