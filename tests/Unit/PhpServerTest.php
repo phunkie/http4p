@@ -14,7 +14,9 @@ namespace Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Phunkie\Http4p\Request;
 use Phunkie\Http4p\Response;
+use Phunkie\Http4p\Server\Output;
 use Phunkie\Http4p\Server\PhpServer;
+use Phunkie\Streams\IO\Resource;
 use RuntimeException;
 
 use function Phunkie\Effect\Functions\io\io;
@@ -64,14 +66,70 @@ final class PhpServerTest extends TestCase
         $this->assertStringContainsString('boom', implode('', $response->body->toArray()));
     }
 
-    public function testSendResponseWritesTheBody(): void
+    public function testSendResponseWritesTheStatusTheHeadersAndTheBody(): void
     {
-        $server = new PhpServer(HttpRoutes());
+        $output = $this->recordingOutput();
+        $server = new PhpServer(HttpRoutes(), $output);
 
-        ob_start();
         $server->sendResponse(Ok('hello')->unsafeRun())->unsafeRun();
-        $output = ob_get_clean();
 
-        $this->assertSame('hello', $output);
+        $this->assertSame(['status 200', 'header content-type: application/json', 'write hello'], $output->log);
+    }
+
+    public function testSendResponseWritesEachChunkBeforePullingTheNext(): void
+    {
+        $output = $this->recordingOutput();
+        $source = new class ($output->log) implements Resource {
+            private array $chunks = ['one', 'two'];
+
+            public function __construct(private array &$log)
+            {
+            }
+
+            public function pull(int $chunkSize): mixed
+            {
+                $chunk = array_shift($this->chunks);
+                $this->log[] = null === $chunk ? 'pull end' : "pull $chunk";
+
+                return $chunk ?? Resource::EOF;
+            }
+        };
+        $server = new PhpServer(HttpRoutes(), $output);
+
+        $server->sendResponse(Ok(\Stream($source))->unsafeRun())->unsafeRun();
+
+        $this->assertSame(['status 200', 'pull one', 'write one', 'pull two', 'write two', 'pull end'], $output->log);
+    }
+
+    public function testSendResponseAddsNoContentLengthToAStreamedBody(): void
+    {
+        $output = $this->recordingOutput();
+        $server = new PhpServer(HttpRoutes(), $output);
+
+        $server->sendResponse(Ok(\Stream('a', 'b'))->unsafeRun())->unsafeRun();
+
+        $this->assertSame(['status 200', 'write a', 'write b'], $output->log);
+    }
+
+    private function recordingOutput(): Output
+    {
+        return new class () implements Output {
+            public array $log = [];
+
+            public function status(int $code): void
+            {
+                $this->log[] = "status $code";
+            }
+
+            public function header(string $name, string $value): void
+            {
+                $this->log[] = "header $name: $value";
+            }
+
+            public function write(string $chunk): void
+            {
+                $this->log[] = "write $chunk";
+            }
+        };
     }
 }
