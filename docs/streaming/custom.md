@@ -16,11 +16,9 @@ class RandomNumberPull implements Pull {
 
 ## Creating the Stream
 
-Use the `Stream()` helper to create a Stream from your custom Pull implementation.
+Use the `Stream()` helper, a global function from phunkie/streams, to create a Stream from your custom Pull implementation:
 
 ```php
-use Phunkie\Streams\Type\Stream;
-
 $stream = Stream(new RandomNumberPull());
 ```
 
