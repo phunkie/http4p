@@ -6,7 +6,7 @@ Every helper lives under `Phunkie\Http4p\Functions`. Import what you use with `u
 |-----------|-----------|
 | `Phunkie\Http4p\Functions` | `HttpRoutes`, `Request`, `Response`, `Headers`, `Status`, `StatusOk` and the other status constructors, `decode`, `FileResponse` |
 | `Phunkie\Http4p\Functions\routes` | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
-| `Phunkie\Http4p\Functions\response` | `Ok`, `Created`, `Accepted`, `NoContent`, `BadRequest`, `Unauthorized`, `Forbidden`, `NotFound`, `Conflict`, `InternalServerError` |
+| `Phunkie\Http4p\Functions\response` | `Ok`, `Created`, `Accepted`, `NoContent`, `BadRequest`, `Unauthorized`, `Forbidden`, `NotFound`, `Conflict`, `UnprocessableEntity`, `InternalServerError` |
 | `Phunkie\Http4p\Functions\decoding` | `json` |
 | `Phunkie\Http4p\Functions\middleware` | `Through`, `Logger`, `Cors`, `Recover` |
 | `Phunkie\Http4p\Functions\headers` | `get`, `put`, `remove` |
@@ -29,15 +29,19 @@ use function Phunkie\Http4p\Functions\response\Ok;
 ## Response Factories
 Namespace: `Phunkie\Http4p\Functions\response`
 
-- `Ok(mixed $body = null, array $headers = []): Response`
-- `Created(mixed $body = null, array $headers = []): Response`
-- `Accepted(mixed $body = null, array $headers = []): Response`
-- `NoContent(): Response`
-- `BadRequest(mixed $body = null): Response`
-- `Unauthorized(mixed $body = null): Response`
-- `Forbidden(mixed $body = null): Response`
-- `NotFound(mixed $body = null): Response`
-- `InternalServerError(mixed $body = null): Response`
+Every constructor takes the body first and an optional `EntityEncoder`, and returns `IO<Response>`; the default encoder writes JSON, see [Entity Encoding](../core/entity-encoding.md).
+
+- `Ok(mixed $body = null, ?EntityEncoder $encoder = null)`
+- `Created(mixed $body = null, ?EntityEncoder $encoder = null)`
+- `Accepted(mixed $body = null, ?EntityEncoder $encoder = null)`
+- `NoContent()`
+- `BadRequest(mixed $body = null, ?EntityEncoder $encoder = null)`
+- `Unauthorized(mixed $body = null, ?EntityEncoder $encoder = null)`
+- `Forbidden(mixed $body = null, ?EntityEncoder $encoder = null)`
+- `NotFound(mixed $body = null, ?EntityEncoder $encoder = null)`
+- `Conflict(mixed $body = null, ?EntityEncoder $encoder = null)`
+- `UnprocessableEntity(mixed $body = null, ?EntityEncoder $encoder = null)`
+- `InternalServerError(mixed $body = null, ?EntityEncoder $encoder = null)`
 
 ## Streaming
 - `Stream(mixed $source): Stream`

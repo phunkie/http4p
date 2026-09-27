@@ -195,9 +195,68 @@ class JsonEncoderTest extends TestCase
 
         $this->assertSame('{"suit":"hearts","rows":[{"suit":"hearts"}]}', (new JsonEncoder())->encode(['suit' => Suit::Hearts, 'rows' => [$entity]]));
     }
+
+    public function testEncodesAValueObjectAsItsSingleValueWhereverItAppears(): void
+    {
+        $entity = new class(new Email('ada@example.com'), new Rating(4)) {
+            public function __construct(public Email $email, public Rating $rating) {}
+        };
+
+        $this->assertSame('{"email":"ada@example.com","rows":[{"email":"ada@example.com","rating":4}]}', (new JsonEncoder())->encode(['email' => new Email('ada@example.com'), 'rows' => [$entity]]));
+    }
+
+    public function testAnObjectWrappingAValueObjectStaysAnObject(): void
+    {
+        $this->assertSame('{"contact":{"email":"ada@example.com"}}', (new JsonEncoder())->encode(['contact' => new Contact(new Email('ada@example.com'))]));
+    }
+
+    public function testLeavesAnObjectWithMoreThanOnePropertyAsAnObject(): void
+    {
+        $this->assertSame('{"amount":10,"currency":"GBP"}', (new JsonEncoder())->encode(new Money(10, 'GBP')));
+    }
+
+    public function testLeavesAnObjectBuiltWithoutAConstructorAsAnObject(): void
+    {
+        $this->assertSame('{"key":"value"}', (new JsonEncoder())->encode((object) ['key' => 'value']));
+    }
+
+    public function testJsonSerializableWinsOverTheValueObjectRule(): void
+    {
+        $this->assertSame('{"value":"fiction"}', (new JsonEncoder())->encode(new Tag('fiction')));
+    }
 }
 
 enum Suit: string
 {
     case Hearts = 'hearts';
+}
+
+final readonly class Email
+{
+    public function __construct(public string $value) {}
+}
+
+final readonly class Rating
+{
+    public function __construct(public int $value) {}
+}
+
+final readonly class Contact
+{
+    public function __construct(public Email $email) {}
+}
+
+final readonly class Money
+{
+    public function __construct(public int $amount, public string $currency) {}
+}
+
+final readonly class Tag implements \JsonSerializable
+{
+    public function __construct(public string $name) {}
+
+    public function jsonSerialize(): array
+    {
+        return ['value' => $this->name];
+    }
 }

@@ -98,6 +98,11 @@ namespace Phunkie\Http4p\Functions {
         return new StatusClass(409, 'Conflict');
     }
 
+    function StatusUnprocessableEntity(): StatusClass
+    {
+        return new StatusClass(422, 'Unprocessable Entity');
+    }
+
     // 5xx Server Errors
     function StatusInternalServerError(): StatusClass
     {
