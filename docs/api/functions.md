@@ -44,9 +44,12 @@ Every constructor takes the body first and an optional `EntityEncoder`, and retu
 - `InternalServerError(mixed $body = null, ?EntityEncoder $encoder = null)`
 
 ## Streaming
-- `Stream(mixed $source): Stream`
 - `FileResponse(string $path): IO<Response>`
-- `StreamFromPDO(\PDOStatement $stmt): Stream`
+
+The stream factories come from phunkie/streams and are global functions, imported by nothing:
+
+- `Stream(mixed ...$source): Stream`
+- `StreamFromPDO(PDOStatement $stmt): Stream`
 
 ## Core Types Helpers
 - `Response(Status $status, Headers $headers, Stream $body): Response`

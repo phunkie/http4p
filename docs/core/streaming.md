@@ -1,6 +1,6 @@
 # Streaming in Http4p
 
-In **Http4p**, streaming is not an afterthought or a special mode—it is the default.
+In **Http4p**, streaming is not an afterthought or a special mode: it is the default.
 
 Every `Request` body is a Stream.
 Every `Response` body is a Stream.
@@ -18,11 +18,9 @@ GET('/', fn() => Ok("Hello World")); // Streams: "Hello", " ", "World" (conceptu
 ```
 
 ### 2. Generating Data (Push)
-You can stream data dynamically to the client. This is useful for large reports, logs, or real-time event feeds.
+You can stream data dynamically to the client. This is useful for large reports, logs, or real-time event feeds. `Stream()` is phunkie/streams' global factory, so it needs no import:
 
 ```php
-use function Phunkie\Streams\Functions\stream\Stream;
-
 GET('/numbers', fn() =>
     // Create a stream that yields numbers 1 to 10
     Ok(Stream(range(1, 10))
