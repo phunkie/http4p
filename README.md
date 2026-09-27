@@ -110,6 +110,24 @@ A `POST /users` with `{"name": 7}` never reaches the handler; the router answers
 {"error": "Body does not describe User.", "errors": {"name": "expected string, got int", "email": "missing"}}
 ```
 
+## Calling another service
+
+`send` is the client: a `Request` in, an `IO<Response>` out, its body a stream read from the connection as it is compiled. A newline-delimited JSON export decodes straight into entities, one line at a time:
+
+```php
+use function Phunkie\Http4p\Functions\client\send;
+use function Phunkie\Http4p\Functions\decodeLines;
+
+send(Request(Method::GET, 'http://catalogue.internal/books/export'))
+    ->flatMap(fn(Response $response) => decodeLines($response, Book::class)
+        ->evalTap(fn(Book $book) => io(fn() => $index->add($book)))
+        ->compile()
+        ->drain())
+    ->unsafeRun();
+```
+
+The server writes and flushes each chunk before producing the next, and the client reads the same way, so neither side holds more than a chunk of the export. See [Client](docs/core/client.md) and [Streaming](docs/core/streaming.md).
+
 ## Documentation
 
 Full documentation is available in [docs/](docs/index.md).
@@ -118,6 +136,7 @@ Full documentation is available in [docs/](docs/index.md).
 - [Core Concepts](docs/getting-started/core-concepts.md)
 - [Entity Decoding](docs/core/entity-decoding.md)
 - [Streaming](docs/core/streaming.md)
+- [Client](docs/core/client.md)
 - [Middleware](docs/middleware/basics.md)
 - [REST API example](docs/examples/rest-api.md)
 - [API Reference](docs/api/functions.md)

@@ -14,6 +14,8 @@ namespace Phunkie\Http4p\Functions {
     use Phunkie\Effect\IO\IO;
     use Phunkie\Http4p\Decoder\EntityDecoder;
     use Phunkie\Http4p\Request;
+    use Phunkie\Http4p\Response;
+    use Phunkie\Streams\Type\Stream;
 
     use function Phunkie\Effect\Functions\io\io;
     use function Phunkie\Http4p\Functions\decoding\json;
@@ -40,6 +42,27 @@ namespace Phunkie\Http4p\Functions {
         };
 
         return io(fn () => $decoder(implode('', $request->body->compile()->toArray())));
+    }
+
+    /**
+     * Decode a body of newline-delimited JSON, one entity per line, as a Stream of that entity.
+     *
+     * Each line is checked against the entity's constructor the way a full request body is, with
+     * the generated parameters expected as well since the rows come from a store, and becomes an
+     * instance. Blank lines are skipped. A line that does not fit fails the stream with a
+     * DecodeFailure when the stream reaches it, so nothing is decoded before it is needed.
+     *
+     * @param class-string $class
+     * @return Stream of instances of $class
+     */
+    function decodeLines(Request|Response $message, string $class): Stream
+    {
+        $decoder = EntityDecoder::stored($class);
+
+        return $message->body
+            ->lines()
+            ->filter(fn (string $line) => '' !== trim($line))
+            ->map(fn (string $line) => new $class(...$decoder($line)));
     }
 }
 

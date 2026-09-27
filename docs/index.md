@@ -13,6 +13,7 @@
 - [Entity Encoding](core/entity-encoding.md) - Converting values to streaming bodies
 - [Entity Decoding](core/entity-decoding.md) - Handling request bodies (Not Middleware!)
 - [Streaming](core/streaming.md) - Backpressure, cancellation, and memory efficiency
+- [Client](core/client.md) - Calling another service and consuming its response as a stream
 
 ### Routing
 - [Route Definition](routing/definition.md) - Defining routes with `GET`, `POST`, etc.
@@ -26,6 +27,7 @@
 - [Database Streaming](streaming/database.md) - Streaming query results
 - [Custom Streams](streaming/custom.md) - Building custom streams
 - [Backpressure](streaming/backpressure.md) - Implicit flow control
+- [Client](core/client.md) - Reading a streamed response, decoding an export line by line
 
 ### Middleware
 - [Basics](middleware/basics.md) - How usage works

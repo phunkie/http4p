@@ -4,8 +4,9 @@ Every helper lives under `Phunkie\Http4p\Functions`. Import what you use with `u
 
 | Namespace | Functions |
 |-----------|-----------|
-| `Phunkie\Http4p\Functions` | `HttpRoutes`, `Request`, `Response`, `Headers`, `Status`, `StatusOk` and the other status constructors, `decode`, `FileResponse` |
+| `Phunkie\Http4p\Functions` | `HttpRoutes`, `Request`, `Response`, `Headers`, `Status`, `StatusOk` and the other status constructors, `decode`, `decodeLines`, `FileResponse` |
 | `Phunkie\Http4p\Functions\routes` | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
+| `Phunkie\Http4p\Functions\client` | `send` |
 | `Phunkie\Http4p\Functions\response` | `Ok`, `Created`, `Accepted`, `NoContent`, `BadRequest`, `Unauthorized`, `Forbidden`, `NotFound`, `Conflict`, `UnprocessableEntity`, `InternalServerError` |
 | `Phunkie\Http4p\Functions\decoding` | `json` |
 | `Phunkie\Http4p\Functions\middleware` | `Through`, `Logger`, `Cors`, `Recover` |
@@ -42,6 +43,15 @@ Every constructor takes the body first and an optional `EntityEncoder`, and retu
 - `Conflict(mixed $body = null, ?EntityEncoder $encoder = null)`
 - `UnprocessableEntity(mixed $body = null, ?EntityEncoder $encoder = null)`
 - `InternalServerError(mixed $body = null, ?EntityEncoder $encoder = null)`
+
+## Decoding
+- `decode(Request $request, string|callable|null $decoder = null, array $known = []): IO<mixed>`, see [Entity Decoding](../core/entity-decoding.md)
+- `decodeLines(Request|Response $message, string $class): Stream`, one instance of `$class` per line of newline-delimited JSON
+
+## Client
+Namespace: `Phunkie\Http4p\Functions\client`
+
+- `send(Request $request, float $timeout = 30.0): IO<Response>`, the body a `Stream` read from the connection as it is compiled, see [Client](../core/client.md)
 
 ## Streaming
 - `FileResponse(string $path): IO<Response>`

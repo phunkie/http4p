@@ -43,6 +43,11 @@ final class EntityDecoder
 {
     private const GENERATED = 'Phunkie\Phetch\Attributes\Generated';
 
+    private bool $includingGenerated = false;
+
+    /** @var list<ReflectionParameter>|null */
+    private ?array $parameters = null;
+
     /**
      * @param class-string $class
      * @param array<string, mixed> $known values the route already has, keyed by parameter name
@@ -52,6 +57,20 @@ final class EntityDecoder
         private Method $method,
         private array $known = [],
     ) {
+    }
+
+    /**
+     * A decoder for an entity as a store holds it: every parameter without a default is required,
+     * the generated ones included, since they were produced when the row was written.
+     *
+     * @param class-string $class
+     */
+    public static function stored(string $class): self
+    {
+        $decoder = new self($class, Method::PUT);
+        $decoder->includingGenerated = true;
+
+        return $decoder;
     }
 
     /**
@@ -76,7 +95,7 @@ final class EntityDecoder
         $fields = [];
         $errors = [];
         foreach ($this->parameters() as $param) {
-            if ($this->isGenerated($param)) {
+            if (! $this->includingGenerated && $this->isGenerated($param)) {
                 continue;
             }
 
@@ -130,7 +149,7 @@ final class EntityDecoder
      */
     private function parameters(): array
     {
-        return (new ReflectionClass($this->class))->getConstructor()?->getParameters() ?? [];
+        return $this->parameters ??= (new ReflectionClass($this->class))->getConstructor()?->getParameters() ?? [];
     }
 
     private function isGenerated(ReflectionParameter $param): bool

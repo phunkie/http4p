@@ -66,3 +66,7 @@ decode($req, Author::class)
     ->flatMap(fn(array $data) => create(Author::class, $data)->run($conn))
     ->flatMap(Created(...));
 ```
+
+## Decoding a stream of lines
+
+`decodeLines($message, Author::class)` reads a request or response body of newline-delimited JSON as a `Stream` of `Author`, one per line, with the same rules and errors, and two differences that follow from the lines describing stored entities: every parameter without a default is required, as on `PUT`, and the `#[Generated]` parameters are expected too. Each line becomes an instance, not an array of fields, and a line that does not fit fails the stream with the `DecodeFailure` when the stream reaches it. See [Client](client.md) for reading another service's export this way.
