@@ -13,7 +13,6 @@ namespace Phunkie\Http4p\Server;
 
 use Phunkie\Effect\IO\IO;
 use Phunkie\Http4p\Encoder\JsonEncoder;
-use Phunkie\Http4p\Headers;
 use Phunkie\Http4p\Method;
 use Phunkie\Http4p\Request;
 use Phunkie\Http4p\Response;
@@ -29,10 +28,11 @@ use function Phunkie\Http4p\Functions\Response;
 use function Phunkie\Http4p\Functions\StatusInternalServerError;
 
 /**
- * Simple HTTP server using PHP's built-in capabilities.
+ * Serves an application through PHP's own SAPI: one request per PHP process, as php-fpm, the
+ * built-in server, FrankenPHP or RoadRunner run it.
  *
- * This is a basic implementation for development/testing.
- * For production, use a proper server like ReactPHP or Swoole.
+ * The response body is written one chunk at a time and each chunk is flushed before the next one
+ * is produced, so a streamed body reaches the client as it is generated.
  */
 final class PhpServer
 {
@@ -41,10 +41,13 @@ final class PhpServer
      */
     private $handler;
 
+    private Output $output;
+
     /**
      * @param ImmList<Route>|callable(Request): IO<Response> $app
+     * @param Output|null $output where the response is written; the SAPI when not given
      */
-    public function __construct(ImmList|callable $app)
+    public function __construct(ImmList|callable $app, ?Output $output = null)
     {
         if ($app instanceof ImmList) {
             $router = new Router($app);
@@ -52,6 +55,7 @@ final class PhpServer
         } else {
             $this->handler = $app;
         }
+        $this->output = $output ?? new SapiOutput();
     }
 
     /**
@@ -90,24 +94,21 @@ final class PhpServer
     }
 
     /**
-     * Send a response to the client.
+     * Send a response to the client: the status and headers, then the body chunk by chunk, each
+     * chunk written before the next one is pulled.
      *
      * @return IO<int> Exit code
      */
     public function sendResponse(Response $response): IO
     {
         return io(function () use ($response) {
-            // Set status
-            http_response_code($response->status->code);
-
-            // Set headers
+            $this->output->status($response->status->code);
             foreach ($response->headers->toArray() as $name => $value) {
-                header("$name: $value");
+                $this->output->header($name, $value);
             }
         })->flatMap(
-            fn() => 
-            $response->body
-                ->evalTap(fn($chunk) => io(function () use ($chunk) { echo $chunk; }))
+            fn() => $response->body
+                ->evalTap(fn($chunk) => io(fn() => $this->output->write($chunk)))
                 ->compile()
                 ->drain()
         )->map(fn() => 0);

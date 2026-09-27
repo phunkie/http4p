@@ -1,15 +1,16 @@
 # Backpressure
 
-Backpressure is the ability of a consumer to signal a producer to slow down. In `http4p` and `phunkie/streams`, backpressure is implicit and built-in via the **Pull-based** architecture.
+Backpressure is the ability of a consumer to signal a producer to slow down. In `http4p` and `phunkie/streams` it is implicit: the pull-based pipeline reads nothing until the consumer asks for it, and the consumer is the socket.
 
 ## How it works
 
-1.  **Lazy Evaluation**: Streams are lazy. No data is read from the source (File, DB, Socket) until the consumer asks for it.
-2.  **Chunk-by-Chunk**: Data is processed in discrete chunks.
-3.  **Synchronous blocking**: In the standard PHP execution model, writing to the output buffer (`echo`) blocks if the buffer is full or the client is slow to receive.
-    -   When `PhpServer` writes a chunk, `echo` blocks.
+1.  **Lazy evaluation**: a stream reads from its source (file, database statement, socket) only when compiled, one element at a time.
+2.  **One chunk in flight**: `PhpServer` pulls a chunk, writes it, flushes it, and only then pulls the next; nothing is buffered in between.
+3.  **The write blocks**: when the client is slow to receive, the flush blocks until the SAPI can send.
     -   This blocks the `drain()` loop.
-    -   This blocks the `pull()` from the source.
-    -   Therefore, we stop reading from the source until the client is ready.
+    -   This blocks the pull from the source.
+    -   So the source is not read faster than the client takes the data.
 
-This ensures that we never read more data into memory than what we can send, preventing Out-Of-Memory errors even when streaming gigabytes of data to a slow client.
+The same holds on the client side: `send` gives a body that reads from the connection as it is compiled, so a producer that is slow to send slows the consumer down, and a consumer that processes slowly leaves the data in the socket.
+
+Memory stays at one chunk on both sides whatever the size of the body and the speed of either end.
