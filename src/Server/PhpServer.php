@@ -82,7 +82,7 @@ final class PhpServer
             }
 
             // Get body as Stream
-             $body = \Stream(new Path('php://input'));
+            $body = \Stream(new Path('php://input'), 65536);
 
             return new Request($method, $uri, Headers($headers), $body);
         })->flatMap(fn ($request) => ($this->handler)($request))

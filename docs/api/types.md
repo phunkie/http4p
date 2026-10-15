@@ -17,5 +17,7 @@ Everything lives under `Phunkie\Http4p`. Every value is immutable: the `with` me
 | `Server\PhpServer` | serves an application through the SAPI; takes an optional `Server\Output` |
 | `Server\Output`, `Server\SapiOutput` | where a response is written: the status, the headers, then each chunk of the body, flushed as it is written |
 | `Client\ResponseHead` | the status and headers of a response read by `send`, before any of its body |
+| `Client\SocketTransport` | what `send` runs: one HTTP/1.1 connection per request, plain or TLS, the request body framed by `Content-Length` or chunked as the stream allows |
+| `Client\ResponseBody` | the response body as a `Resource`, decoded chunk by chunk as it is pulled, chunked, counted or until the server closes |
 
 The functions that build and use them are listed in [Functions](functions.md).
