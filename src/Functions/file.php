@@ -14,6 +14,7 @@ namespace Phunkie\Http4p\Functions {
     use Phunkie\Effect\IO\IO;
     use Phunkie\Http4p\Headers;
     use Phunkie\Http4p\Response as ResponseClass;
+    use Phunkie\Streams\IO\File\Path;
     use Phunkie\Streams\IO\Read;
 
     use function Phunkie\Effect\Functions\io\io;
@@ -40,7 +41,7 @@ namespace Phunkie\Http4p\Functions {
                 'Content-Length' => (string)$size
             ]);
 
-            return io(fn() => Response(StatusOk(), $headers, Stream(new Read($path))));
+            return io(fn() => Response(StatusOk(), $headers, Stream(new Read(new Path($path)))));
         })->flatMap(fn($io) => $io);
     }
 }

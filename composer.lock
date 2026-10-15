@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6c5179ebac6a139bec9bd7374a98271b",
+    "content-hash": "13285c312aa86591a5bd992e49bb3adc",
     "packages": [
         {
             "name": "phunkie/effect",
@@ -120,16 +120,16 @@
         },
         {
             "name": "phunkie/streams",
-            "version": "1.5.0",
+            "version": "1.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phunkie/streams.git",
-                "reference": "45231191ff59597974acd40591c83926a76380d0"
+                "reference": "3cdd30a4718ecffd72f16f2f8cf5da68e4ed6b4c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phunkie/streams/zipball/45231191ff59597974acd40591c83926a76380d0",
-                "reference": "45231191ff59597974acd40591c83926a76380d0",
+                "url": "https://api.github.com/repos/phunkie/streams/zipball/3cdd30a4718ecffd72f16f2f8cf5da68e4ed6b4c",
+                "reference": "3cdd30a4718ecffd72f16f2f8cf5da68e4ed6b4c",
                 "shasum": ""
             },
             "require": {
@@ -154,15 +154,39 @@
             },
             "type": "library",
             "autoload": {
-                "files": [
-                    "src/Functions/common.php"
-                ],
                 "psr-4": {
                     "Phunkie\\Streams\\": "src/",
                     "Tests\\Phunkie\\Streams\\": "tests/"
-                }
+                },
+                "files": [
+                    "src/Functions/common.php"
+                ]
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "test": [
+                    "pest"
+                ],
+                "phpstan": [
+                    "phpstan analyse --memory-limit=512M"
+                ],
+                "cs-fix": [
+                    "php-cs-fixer fix --allow-risky=yes"
+                ],
+                "cs-check": [
+                    "php-cs-fixer fix --dry-run --diff --allow-risky=yes"
+                ],
+                "lint": [
+                    "@cs-check",
+                    "@phpstan"
+                ],
+                "test-all": [
+                    "scripts/test-all-versions.sh"
+                ],
+                "check": [
+                    "@lint",
+                    "@test"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -174,10 +198,10 @@
             ],
             "description": "Functional Streams for PHP",
             "support": {
-                "issues": "https://github.com/phunkie/streams/issues",
-                "source": "https://github.com/phunkie/streams/tree/1.5.0"
+                "source": "https://github.com/phunkie/streams/tree/1.6.0",
+                "issues": "https://github.com/phunkie/streams/issues"
             },
-            "time": "2026-10-15T11:01:58+00:00"
+            "time": "2026-10-15T12:01:38+00:00"
         }
     ],
     "packages-dev": [
