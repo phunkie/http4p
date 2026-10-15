@@ -11,14 +11,14 @@
 
 namespace Phunkie\Http4p\Client;
 
-use Phunkie\Streams\IO\Resource;
+use Phunkie\Streams\IO\Resource as Source;
 
 /**
  * The body of a response read from the socket as it is pulled: chunked transfer encoding decoded
  * chunk by chunk, a Content-Length counted down, or everything until the server closes. The socket
  * is closed when the body ends.
  */
-final class ResponseBody implements Resource
+final class ResponseBody implements Source
 {
     private const CHUNKED = 'chunked';
     private const COUNTED = 'counted';
@@ -79,7 +79,7 @@ final class ResponseBody implements Resource
     public function pull(int $bytes): mixed
     {
         if ($this->done) {
-            return Resource::EOF;
+            return Source::EOF;
         }
 
         $data = match ($this->framing) {
@@ -87,7 +87,7 @@ final class ResponseBody implements Resource
             self::COUNTED => $this->counted($bytes),
             default => $this->rest($bytes),
         };
-        if (Resource::EOF === $data) {
+        if (Source::EOF === $data) {
             $this->close();
         }
 
@@ -105,12 +105,12 @@ final class ResponseBody implements Resource
     private function chunk(int $bytes): string
     {
         if (0 === $this->remaining && !$this->startChunk()) {
-            return Resource::EOF;
+            return Source::EOF;
         }
 
         $data = fread($this->socket, min($bytes, $this->remaining));
         if (false === $data || '' === $data) {
-            return Resource::EOF;
+            return Source::EOF;
         }
 
         $this->remaining -= strlen($data);
@@ -147,12 +147,12 @@ final class ResponseBody implements Resource
     private function counted(int $bytes): string
     {
         if (0 === $this->remaining) {
-            return Resource::EOF;
+            return Source::EOF;
         }
 
         $data = fread($this->socket, min($bytes, $this->remaining));
         if (false === $data || '' === $data) {
-            return Resource::EOF;
+            return Source::EOF;
         }
 
         $this->remaining -= strlen($data);
@@ -164,7 +164,7 @@ final class ResponseBody implements Resource
     {
         $data = fread($this->socket, $bytes);
         if (false === $data || ('' === $data && feof($this->socket))) {
-            return Resource::EOF;
+            return Source::EOF;
         }
 
         return $data;
