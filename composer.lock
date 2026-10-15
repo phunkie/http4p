@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b23fd3bc0d826699c8b65212b260241a",
+    "content-hash": "6c5179ebac6a139bec9bd7374a98271b",
     "packages": [
         {
             "name": "phunkie/effect",
@@ -120,16 +120,16 @@
         },
         {
             "name": "phunkie/streams",
-            "version": "1.4.0",
+            "version": "1.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phunkie/streams.git",
-                "reference": "f9175ce2388fdd026b86f1384dd3aba63a132a83"
+                "reference": "45231191ff59597974acd40591c83926a76380d0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phunkie/streams/zipball/f9175ce2388fdd026b86f1384dd3aba63a132a83",
-                "reference": "f9175ce2388fdd026b86f1384dd3aba63a132a83",
+                "url": "https://api.github.com/repos/phunkie/streams/zipball/45231191ff59597974acd40591c83926a76380d0",
+                "reference": "45231191ff59597974acd40591c83926a76380d0",
                 "shasum": ""
             },
             "require": {
@@ -175,9 +175,9 @@
             "description": "Functional Streams for PHP",
             "support": {
                 "issues": "https://github.com/phunkie/streams/issues",
-                "source": "https://github.com/phunkie/streams/tree/1.4.0"
+                "source": "https://github.com/phunkie/streams/tree/1.5.0"
             },
-            "time": "2026-09-27T10:28:50+00:00"
+            "time": "2026-10-15T11:01:58+00:00"
         }
     ],
     "packages-dev": [
@@ -4746,5 +4746,5 @@
         "php": "^8.2 || ^8.3 || ^8.4"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

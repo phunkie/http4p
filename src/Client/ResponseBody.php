@@ -11,14 +11,15 @@
 
 namespace Phunkie\Http4p\Client;
 
+use Phunkie\Streams\Closeable;
 use Phunkie\Streams\IO\Resource as Source;
 
 /**
  * The body of a response read from the socket as it is pulled: chunked transfer encoding decoded
  * chunk by chunk, a Content-Length counted down, or everything until the server closes. The socket
- * is closed when the body ends.
+ * is closed when the body ends, and through Closeable when the stream is cut short or throws.
  */
-final class ResponseBody implements Source
+final class ResponseBody implements Source, Closeable
 {
     private const CHUNKED = 'chunked';
     private const COUNTED = 'counted';
