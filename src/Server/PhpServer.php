@@ -18,7 +18,6 @@ use Phunkie\Http4p\Request;
 use Phunkie\Http4p\Response;
 use Phunkie\Http4p\Route;
 use Phunkie\Http4p\Router;
-use Phunkie\Streams\IO\File\Path;
 use Phunkie\Types\ImmList;
 use Throwable;
 
@@ -26,6 +25,7 @@ use function Phunkie\Effect\Functions\io\io;
 use function Phunkie\Http4p\Functions\Headers;
 use function Phunkie\Http4p\Functions\Response;
 use function Phunkie\Http4p\Functions\StatusInternalServerError;
+use function Phunkie\Streams\Functions\io\readHandle;
 
 /**
  * Serves an application through PHP's own SAPI: one request per PHP process, as php-fpm, the
@@ -82,7 +82,7 @@ final class PhpServer
             }
 
             // Get body as Stream
-            $body = \Stream(new Path('php://input'), 65536);
+            $body = readHandle(io(fn () => fopen('php://input', 'rb')), 65536);
 
             return new Request($method, $uri, Headers($headers), $body);
         })->flatMap(fn ($request) => ($this->handler)($request))
