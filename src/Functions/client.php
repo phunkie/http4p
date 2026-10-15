@@ -12,33 +12,27 @@
 namespace Phunkie\Http4p\Functions\client {
 
     use Phunkie\Effect\IO\IO;
-    use Phunkie\Http4p\Client\ResponseHead;
+    use Phunkie\Http4p\Client\SocketTransport;
     use Phunkie\Http4p\Request;
-    use Phunkie\Http4p\Response;
-    use Phunkie\Streams\IO\Network\HttpRequest;
 
     use function Phunkie\Effect\Functions\io\io;
 
     /**
      * Send a request to another service and describe its response.
      *
-     * The request goes out and the status and headers are read when the IO runs. The body is a
-     * Stream pulled from the connection chunk by chunk as it is compiled, so a large response is
+     * The request goes out over its own HTTP/1.1 connection when the IO runs: a body built from
+     * a string is sent with its Content-Length, a resource-backed body streams out chunked, one
+     * chunk written as it is pulled. The status and headers are read then; the body is a Stream
+     * pulled from the connection chunk by chunk as it is compiled, so a large response is
      * consumed in constant memory: compose it with lines(), decodeLines() or any stream operation.
+     * Redirects are not followed.
      *
      * @param Request $request its uri absolute, http:// or https://
-     * @param float $timeout seconds to wait for the connection and each read
-     * @return IO<Response>
+     * @param float $timeout seconds to wait for the connection and for each read
+     * @return IO<\Phunkie\Http4p\Response>
      */
     function send(Request $request, float $timeout = 30.0): IO
     {
-        return io(function () use ($request, $timeout) {
-            $body = implode('', $request->body->compile()->toArray());
-            $http = new HttpRequest($request->uri, $request->method->value, $request->headers->toArray(), '' === $body ? null : $body, $timeout);
-            $http->execute();
-            $head = ResponseHead::fromWrapperData($http->getResponseHeaders());
-
-            return new Response($head->status, $head->headers, \Stream($http));
-        });
+        return io(fn () => (new SocketTransport($timeout))->send($request));
     }
 }

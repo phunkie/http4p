@@ -19,7 +19,22 @@ implode('', $response->body->compile()->toArray());     // the whole body, when 
 send(Request(Method::POST, 'http://catalogue.internal/books', Headers(['content-type' => 'application/json']), json_encode($book)));
 ```
 
-The request goes out and the status and headers are read when the IO runs; the body is not read until the stream is compiled. A failed status is a response like any other: `send` does not throw on a 404 or a 500, only a `RuntimeException` when no connection could be made. The second argument is the timeout in seconds, for connecting and for each read.
+The request goes out over its own HTTP/1.1 connection when the IO runs, and the status and headers are read then; the body is not read until the stream is compiled. A failed status is a response like any other: `send` does not throw on a 404 or a 500, only a `RuntimeException` when no connection could be made or the server closed it before answering. Redirects are not followed; a 3xx comes back as it is. The second argument is the timeout in seconds, for connecting and for each read.
+
+## The transport
+
+`send` opens a plain socket for `http://` and a TLS socket for `https://`, sends `Connection: close`, and frames the request body by what the stream knows:
+
+- A body built from a string, or any pure stream, goes out with its `Content-Length`.
+- A body backed by a file, a socket or another response goes out with chunked transfer encoding, one chunk written as it is pulled, so an upload of any size streams through without being held:
+
+```php
+use function Phunkie\Streams\Functions\io\readHandle;   // streams 1.5
+
+send(Request(Method::PUT, 'http://archive.internal/exports/today', null, readHandle(io(fn() => fopen('export.ndjson', 'rb')))));
+```
+
+The response body is decoded as the server framed it, chunked, counted by `Content-Length`, or read until the server closes, and the socket is closed when the body ends. A `HEAD`, a `204` or a `304` has no body to pull.
 
 ## Reading a large body
 

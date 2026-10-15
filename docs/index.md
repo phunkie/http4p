@@ -31,7 +31,7 @@
 
 ### Middleware
 - [Basics](middleware/basics.md) - How usage works
-- [Built-in](middleware/built-in.md) - Logger, Cors
+- [Built-in](middleware/built-in.md) - Logger, Cors, Recover
 - [Custom](middleware/custom.md) - Writing your own
 
 ### Examples
